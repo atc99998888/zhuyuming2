@@ -1,129 +1,202 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>导航</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: "Microsoft YaHei", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 820px;
-        }
-        
-        h1 {
-            text-align: center;
-            color: white;
-            margin-bottom: 35px;
-            font-size: 2.3em;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 25px;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.18);
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-        }
-        
-        .card:hover {
-            transform: translateY(-10px) scale(1.05);
-            box-shadow: 0 18px 35px rgba(0,0,0,0.28);
-        }
-        
-        .image-container {
-            width: 100%;
-            padding-top: 100%;           /* 强制正方形容器 */
-            position: relative;
-        }
-        
-        .card img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: fill;            /* 关键修改：强制填充 + 显示完整图片（允许变形） */
-            display: block;
-        }
-        
-        .card .title {
-            padding: 16px;
-            text-align: center;
-            font-size: 1.18em;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 35px;
-            color: rgba(255,255,255,0.75);
-            font-size: 0.95em;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Greenfield University · Official Website</title>
+<meta name="description" content="Greenfield University — private research university offering 120+ majors, global research labs and inclusive student life since 1896.">
+<style>
+  :root{--g:#4caf50;--gd:#388e3c;--bg:#f1f8f4;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);font-family:"Segoe UI","Roboto",Arial,sans-serif;}
+
+  /* --- 顶部区域 --- */
+  header{display:flex;flex-direction:column;align-items:center;justify-content:center;
+         height:calc(100% - 110px);gap:38px;text-align:center}
+  .title{font-size:1.9rem;font-weight:700;color:#235085;letter-spacing:.04em}
+  .subtitle{font-size:.9rem;color:#49648e;margin-top:6px}
+
+  /* --- 菜单按钮 --- */
+  .menu{display:flex;flex-direction:column;gap:18px;width:86vw;max-width:320px}
+  .btn{display:block;width:100%;background:var(--g);color:#fff;border:0;border-radius:10px;
+       padding:18px 0;font-size:1.08rem;font-weight:600;cursor:pointer;transition:background .18s}
+  .btn:hover{background:var(--gd)}
+
+  /* --- 信息 --- */
+  details{width:100%;max-width:920px;margin:20px auto}
+  summary{list-style:none;font-size:.95rem;color:#4d5a75;cursor:pointer;text-align:center;padding:10px 0}
+  summary::after{content:"▼";margin-left:6px;font-size:.7rem;transition:transform .2s}
+  details[open] summary{color:#235085;font-weight:600}
+  details[open] summary::after{transform:rotate(180deg)}
+
+  .info-box{background:#fff;border-radius:12px;box-shadow:0 2px 14px #b7c9e130;
+           padding:34px 28px;margin-top:6px;line-height:1.78;color:#253553;font-size:1.05rem;
+           max-height:70vh;overflow:auto}
+  .info-box h2{font-size:1.18rem;color:#235085;margin:24px 0 10px;font-weight:700}
+  .info-box ul{padding-left:22px}
+
+  /* --- 备案 --- */
+  footer{position:fixed;left:0;bottom:0;width:100vw;background:var(--bg);
+         font-size:.83rem;color:#7685a2;text-align:center;line-height:1.6;padding:12px 8px 16px}
+  footer a{color:inherit;text-decoration:none}
+  footer a:hover{text-decoration:underline}
+      
+
+  /* --- Loading --- */
+  #loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+           background:rgba(255,255,255,.75);z-index:9999}
+  #loading span{font-size:1rem;color:#235085;font-weight:600;letter-spacing:.03em}
+  #loading i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#235085;
+             margin-left:8px;animation:spin 1s linear infinite}
+  @keyframes spin{0%{transform:scale(1)}50%{transform:scale(1.6);opacity:.5}100%{transform:scale(1)}}
+
+  @media(max-width:620px){.title{font-size:1.3rem}.btn{font-size:.97rem}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>我的导航</h1>
-        
-        <div class="grid">
-            
-            <a href="https://www.baidu.com" class="card" target="_blank">
-                <div class="image-container">
-                    <img src="./0070.gif" alt="百度">
-                </div>
-                <div class="title">百度</div>
-            </a>
-            
-            <a href="https://www.google.com" class="card" target="_blank">
-                <div class="image-container">
-                    <img src="./0071.gif" alt="Google">
-                </div>
-                <div class="title">Google</div>
-            </a>
-            
-            <a href="https://github.com" class="card" target="_blank">
-                <div class="image-container">
-                    <img src="./0072.gif" alt="GitHub">
-                </div>
-                <div class="title">GitHub</div>
-            </a>
-            
-            <a href="https://www.bilibili.com" class="card" target="_blank">
-                <div class="image-container">
-                    <img src="./0073.gif" alt="Bilibili">
-                </div>
-                <div class="title">哔哩哔哩</div>
-            </a>
-            
-        </div>
-        
-        <div class="footer">图片导航 • 点击跳转</div>
-    </div>
+
+<header>
+  <div>
+    <div class="title">Greenfield University分校1</div>
+    <div class="subtitle">下面每一个都不同，建议全部下载留存</div>
+  </div>
+
+  <div class="menu">
+    
+    <!-- 菜单1：石榴卡1 -->
+    <button class="btn" data-visible="1" onclick="go('https://xskl8ah38d-3bm.oss-cn-heyuan.aliyuncs.com/h-fkcf-5iy/ju-vif/Rhu?d=HLBWkMyj&e=1&tUJW5=Pp3oW2S&ts=1786118135747')">
+        🎞全国最大共享资源总群.免费 →
+    </button>
+
+
+    <!-- 菜单3：石榴卡2 -->
+    <button class="btn" data-visible="1" onclick="go('https://cs-kegptpbnqm1mtt8110.oss-cn-qingdao.aliyuncs.com/dl9/mgi25-z-a15/pfa?d=NqmWoP1v&e=1&CdMko=WDS83&ts=1786118136724')">
+        🎞 亲测免费通道→不一样 →
+    </button> 
+
+    <!-- 菜单4：石榴临时卡 -->
+    <button class="btn" data-visible="1" onclick="go('https://p8703lpsv7-fpy94r36xk.oss-cn-heyuan.aliyuncs.com/xxmou16-ao8/u4b/Jvr?d=XCU4h2M9&e=1&KJxiY=JVQsFCKoCcmxDswj&ts=1786118056463')">
+        🎞 这个最全~各种另类视频➕暗网 →
+    </button>   
+    
+  
+  </div>
+</header>
+
+<!-- -------- 官方信息-------- -->
+<details id="infoBox">
+  <summary>University Info</summary>
+  <div class="info-box">
+
+    <h2>Mission &amp; Vision</h2>
+    <p>Greenfield University's mission is to advance human knowledge and foster global leaders through
+       inquiry-driven education, interdisciplinary research and civic engagement. Our vision is to be a
+       top-50 global university recognised for innovation, inclusion and public impact.</p>
+
+    <h2>Historical Milestones</h2>
+    <ul>
+      <li><strong>1896</strong> — Founded by philanthropist Helen R. Greenfield as a liberal-arts college.</li>
+      <li><strong>1935</strong> — First PhD degrees awarded in Chemistry and Philosophy.</li>
+      <li><strong>1964</strong> — Medical Sciences Campus opened; university hospital now serves 320 000 patients annually.</li>
+      <li><strong>1999</strong> — Center for Environmental Policy launched (ranked #9 worldwide in 2024).</li>
+      <li><strong>2015</strong> — Achieved carbon-neutral electricity ten years ahead of schedule.</li>
+    </ul>
+
+    <h2>Colleges &amp; Academic Offerings</h2>
+    <p>The University confers 74 bachelor’s, 68 master’s, 24 doctoral and 18 professional certificates across six academic units:</p>
+    <ul>
+      <li><strong>College of Arts &amp; Sciences</strong> — BA / BSc, MA, MSc, MFA</li>
+      <li><strong>School of Business (AACSB)</strong> — BBA, MBA, MS-Finance, PhD-Management</li>
+      <li><strong>School of Engineering (ABET)</strong> — BEng, MEng, PhD across eight disciplines</li>
+      <li><strong>School of Law (ABA)</strong> — JD, LLM, joint JD/MBA & JD/MPA</li>
+      <li><strong>College of Health Sciences</strong> — BS-Nursing, MPH, PharmD, DPT</li>
+      <li><strong>Conservatory of Music &amp; Performing Arts</strong> — BMus, MMus, DMA</li>
+    </ul>
+
+    <h2>Rankings &amp; Recognition</h2>
+    <p>
+      • #82 National Universities — <em>U.S. News &amp; World Report 2025</em><br>
+      • Top-100 Worldwide Employability — <em>Times Higher Education 2024</em><br>
+      • #14 Global Sustainability Impact — <em>QS Sustainability 2024</em>
+    </p>
+
+    <h2>Research &amp; Innovation</h2>
+    <p>External funding exceeds <strong>US $220 million</strong> annually. Flagship facilities include:</p>
+    <ul>
+      <li><strong>Institute for Advanced Data Science</strong> — 200 AI researchers, petaflop HPC cluster</li>
+      <li><strong>Renewable Materials Innovation Lab</strong> — Patented carbon-negative cement</li>
+      <li><strong>Center for Precision Medicine</strong> — NIH-designated Clinical Research Unit</li>
+      <li><strong>Greenfield Observatory</strong> — 4-m optical telescope &amp; radio array</li>
+    </ul>
+
+    <h2>Campus Life &amp; Facilities</h2>
+    <p>
+      • 17 residence halls • 3 eco-friendly dining commons • 22 varsity teams (NCAA Div II)<br>
+      • 180+ student organisations • 24/7 Health &amp; Wellness Centre • “Green Ride” bike-share
+    </p>
+
+    <h2>Tuition &amp; Financial Aid</h2>
+    <p>86 % of undergraduates receive assistance. Average first-year aid package 2024-25: <strong>US $32 800</strong>, combining scholarships, grants, work-study and low-interest loans.</p>
+
+    <h2>Governance</h2>
+    <p>The University is overseen by a 28-member Board of Trustees chaired by alumna Dr Maria H. Koenig. Daily operations are led by President Prof Samuel D. Whitaker and a 12-member executive cabinet.</p>
+
+    <h2>Global Partnerships</h2>
+    <p>Exchange agreements with 85 universities in 27 countries—including University of Tokyo, ETH Zurich and University of Cape Town—enable more than 1 100 students each year to study abroad.</p>
+
+    <h2>Sustainability Commitment</h2>
+    <p>Greenfield aims for <strong>net-zero campus operations by 2030</strong>. Recent projects cut water use 28 % and landfill waste 64 %, while solar arrays now supply 92 % of electricity.</p>
+
+    <h2>Notable Alumni</h2>
+    <ul>
+      <li>Dr Valerie Chen ’02 — Nobel Prize in Chemistry (2022)</li>
+      <li>Mr Javier Ruiz ’98 — CEO, Global Bank Group</li>
+      <li>Ms Nina Thorpe ’11 — Academy Award-winning film director</li>
+    </ul>
+
+    <h2>Accreditations</h2>
+    <p>MSCHE • ABET • AACSB • American Bar Association • CCNE • NASM</p>
+
+    <h2>Contact</h2>
+    <p>100 College Ave, Ithaca, NY 14850, USA<br>
+       Tel +1-212-555-8000 &nbsp;|&nbsp; Fax +1-212-555-8010<br>
+       Email <a href="mailto:info@greenfield.edu">info@greenfield.edu</a></p>
+  </div>
+</details>
+
+<footer>
+  © 2025 Greenfield University — 501(c)(3) non-profit (EIN 12-3456789).<br>
+  Registered with the New York State Board of Regents #2025-987654.<br>
+  <a href="#">Privacy Policy</a> • <a href="#">Accessibility</a> • <a href="#">Terms of Use</a>
+</footer>
+
+<!-- Loading overlay -->
+<div id="loading"><span>Loading<i></i></span></div>
+
+<script>
+  /* 加载 */
+  function go(url){
+    window.open(url,'_blank','noopener');
+    const mask=document.getElementById('loading');
+    mask.style.display='flex';
+    setTimeout(()=>{ mask.style.display='none'; },3000);
+  }
+
+  /* 滚动条 */
+  document.getElementById('infoBox').addEventListener('toggle',e=>{
+    document.body.style.overflow = e.target.open ? 'auto' : 'hidden';
+  });
+
+  /* ========== 菜单显示控制（新增） ========== */
+  document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('.menu .btn');
+    buttons.forEach(btn => {
+      if (btn.getAttribute('data-visible') === '0') {
+        btn.style.display = 'none';
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
