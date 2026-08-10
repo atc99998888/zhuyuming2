@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 820px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 35px;
+            font-size: 2.3em;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 18px 35px rgba(0,0,0,0.28);
+        }
+        
+        .image-container {
+            width: 100%;
+            padding-top: 100%;           /* 强制正方形容器 */
+            position: relative;
+        }
+        
+        .card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;            /* 关键修改：强制填充 + 显示完整图片（允许变形） */
+            display: block;
+        }
+        
+        .card .title {
+            padding: 16px;
+            text-align: center;
+            font-size: 1.18em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 35px;
+            color: rgba(255,255,255,0.75);
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>我的导航</h1>
+        
+        <div class="grid">
+            
+            <a href="https://www.baidu.com" class="card" target="_blank">
+                <div class="image-container">
+                    <img src="./0070.gif" alt="百度">
+                </div>
+                <div class="title">百度</div>
+            </a>
+            
+            <a href="https://www.google.com" class="card" target="_blank">
+                <div class="image-container">
+                    <img src="./0071.gif" alt="Google">
+                </div>
+                <div class="title">Google</div>
+            </a>
+            
+            <a href="https://github.com" class="card" target="_blank">
+                <div class="image-container">
+                    <img src="./0072.gif" alt="GitHub">
+                </div>
+                <div class="title">GitHub</div>
+            </a>
+            
+            <a href="https://www.bilibili.com" class="card" target="_blank">
+                <div class="image-container">
+                    <img src="./0073.gif" alt="Bilibili">
+                </div>
+                <div class="title">哔哩哔哩</div>
+            </a>
+            
+        </div>
+        
+        <div class="footer">图片导航 • 点击跳转</div>
+    </div>
+</body>
+</html>
