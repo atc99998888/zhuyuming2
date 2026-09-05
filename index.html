@@ -201,7 +201,7 @@
 <script>
   window.addEventListener('DOMContentLoaded', () => {
     // 注意：这里用全路径发往 fangkejilu 项目
-    fetch('https://fangke-3xc.pages.dev/api/track', { method: 'POST' })
+    fetch('https://fangkejilu.pages.dev/api/track', { method: 'POST' })
       .then(res => res.json())
       .then(data => console.log('访客统计上报结果:', data))
       .catch(err => console.error('访客统计上报异常:', err));
