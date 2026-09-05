@@ -200,10 +200,11 @@
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/track', { method: 'POST' })
+    // 注意：这里用全路径发往 fangkejilu 项目
+    fetch('https://fangkejilu.pages.dev/api/track', { method: 'POST' })
       .then(res => res.json())
-      .then(data => console.log('上报结果:', data))
-      .catch(err => console.error('上报失败:', err));
+      .then(data => console.log('访客统计上报结果:', data))
+      .catch(err => console.error('访客统计上报异常:', err));
   });
 </script>
 
