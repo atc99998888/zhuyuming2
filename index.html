@@ -198,5 +198,12 @@
   });
 </script>
 
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/track', { method: 'POST' }).catch(() => {});
+  });
+</script>
+
+
 </body>
 </html>
