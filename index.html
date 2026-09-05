@@ -200,9 +200,13 @@
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/track', { method: 'POST' }).catch(() => {});
+    fetch('/api/track', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => console.log('上报结果:', data))
+      .catch(err => console.error('上报失败:', err));
   });
 </script>
+
 
 
 </body>
