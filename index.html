@@ -204,6 +204,56 @@
       .catch(err => console.error('访客统计上报异常:', err));
   });
 </script>
-  
+  <!-- 前端定时自动更新导航脚本 -->
+<script>
+  (function() {
+    // 目标触发时间（本地时间）
+    const targetTime = new Date("2026-09-17 23:20").getTime();
+    const now = new Date().getTime();
+
+    if (now >= targetTime) {
+      document.addEventListener("DOMContentLoaded", function() {
+        const updates = [
+    {
+        "id": "btn-1",
+        "text": ">        🎞全国最大交流总群.免费 →",
+        "url": "https://cyberpolice.mps.gov.cn",
+        "status": "show",
+        "isNew": false
+    }
+];
+
+        updates.forEach(item => {
+          let el = document.getElementById(item.id);
+
+          // 如果按钮原本不存在且是新增的
+          if (!el && item.isNew) {
+            el = document.createElement("button");
+            el.id = item.id;
+            el.className = "btn"; // 可根据你的网页按钮类名调整
+            const firstBtn = document.querySelector("button");
+            if (firstBtn && firstBtn.parentNode) {
+              firstBtn.parentNode.appendChild(el);
+            } else {
+              document.body.appendChild(el);
+            }
+          }
+
+          if (el) {
+            if (item.status === "remove") {
+              el.remove();
+            } else if (item.status === "hide") {
+              el.style.display = "none";
+            } else {
+              el.style.display = "";
+              el.innerText = item.text;
+              el.setAttribute("onclick", "go('" + item.url + "')");
+            }
+          }
+        });
+      });
+    }
+  })();
+</script>
 </body>
 </html>
