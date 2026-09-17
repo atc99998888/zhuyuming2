@@ -167,15 +167,14 @@
   <!-- 导入区 -->
   <div class="card" style="background: #f8fafc; border-left-color: #64748b;">
     <span class="card-title" style="color: #475569;">📥 导入已有配置</span>
-    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">如果你已把 tools.html 部署在同目录下，可直接点击一键自动获取：</p>
+    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">已部署在同目录时，直接点击下方按钮可自动一键获取：</p>
     
-    <!-- 新增：一键自动获取 -->
     <button class="btn-auto-fetch" onclick="fetchLocalJS()">🔄 一键读取同目录 auto-update.js</button>
 
     <details style="margin-top: 10px;">
       <summary style="cursor: pointer; color: #64748b; font-size: 0.85rem;">手动粘贴文本导入（备用）</summary>
       <textarea id="importCode" placeholder="在此粘贴 auto-update.js 代码..." style="margin-top: 8px;"></textarea>
-      <button class="btn-add" onclick="importJS()" style="margin-top: 8px; width: 100%; background: #475569; padding: 10px;">读取剪贴板内容</button>
+      <button class="btn-add" onclick="importJS()" style="margin-top: 8px; width: 100%; background: #475569; padding: 10px;">解析输入的代码</button>
     </details>
   </div>
 
@@ -194,6 +193,17 @@
   <textarea id="outputCode" readonly placeholder="点击上方生成按钮后，此处将生成 JS 代码..."></textarea>
 
   <script>
+    // 动态计算“第二天凌晨0点”的标准字符串 (YYYY/MM/DD 00:00:00)
+    function getTomorrowZeroStandardString() {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}/${month}/${day} 00:00:00`;
+    }
+
+    // 计算 datetime-local 显示格式 (YYYY-MM-DDTHH:mm)
     function getTomorrowZeroPickerString() {
       const d = new Date();
       d.setDate(d.getDate() + 1);
@@ -203,46 +213,50 @@
       return `${year}-${month}-${day}T00:00`;
     }
 
+    // 转换到 datetime-local 控件格式（若传入为空，则补上第二天凌晨0点）
     function formatToPickerValue(timeStr) {
       if (!timeStr) return getTomorrowZeroPickerString();
       const formatted = timeStr.replace(/\//g, '-').replace(' ', 'T');
       return formatted.length >= 16 ? formatted.substring(0, 16) : getTomorrowZeroPickerString();
     }
 
+    // 转换为标准时间格式保存 (YYYY/MM/DD HH:mm:ss)
     function formatToStandardTime(pickerStr) {
-      if (!pickerStr) return '';
+      if (!pickerStr) return getTomorrowZeroStandardString();
       const [date, time] = pickerStr.split('T');
       const [year, month, day] = date.split('-');
-      return `${year}/${month}/${day}${time}:00`;
+      return `${year}/${month}/${day} ${time}:00`;
     }
+
+    // 初始化数据，链接1和链接2的时间统一预设为第二天凌晨0点
+    const defaultTomorrowTime = getTomorrowZeroStandardString();
 
     let navData = [
       {
         id: "btn-1",
         text: "🎞全国最大交流总群.免费 →",
         visible: "1",
-        link1: { url: "https://khxm7iv3ws-hhhkg.oss-cn-wulanchabu.aliyuncs.com/uls-2b7pdd-4p/z-xr-u4/tL-Psr?d=iGxzV4c6&e=1&J0WAjeQ=4D4BwiAuCLPQm6&ts=1789405952159", mode: "1", time: "" },
-        link2: { url: "https://example.com/new-link-1", mode: "0", time: "" }
+        link1: { url: "https://khxm7iv3ws-hhhkg.oss-cn-wulanchabu.aliyuncs.com/uls-2b7pdd-4p/z-xr-u4/tL-Psr?d=iGxzV4c6&e=1&J0WAjeQ=4D4BwiAuCLPQm6&ts=1789405952159", mode: "1", time: defaultTomorrowTime },
+        link2: { url: "https://example.com/new-link-1", mode: "0", time: defaultTomorrowTime }
       },
       {
         id: "btn-2",
         text: "🎞 亲测校园免费通道→不一样 →",
         visible: "1",
-        link1: { url: "https://mr-0ocw87f-bax8np1n6qa.oss-cn-guangzhou.aliyuncs.com/cpha/y-1dza/Updt?d=Ni6qnPs9&e=1&Y4aFnkle=QCYGwKGHM4of&ts=1789405953422", mode: "1", time: "" },
-        link2: { url: "https://example.com/new-link-2", mode: "0", time: "" }
+        link1: { url: "https://mr-0ocw87f-bax8np1n6qa.oss-cn-guangzhou.aliyuncs.com/cpha/y-1dza/Updt?d=Ni6qnPs9&e=1&Y4aFnkle=QCYGwKGHM4of&ts=1789405953422", mode: "1", time: defaultTomorrowTime },
+        link2: { url: "https://example.com/new-link-2", mode: "0", time: defaultTomorrowTime }
       },
       {
         id: "btn-3",
         text: "🎞 这个最全~各种搞笑视频→",
         visible: "1",
-        link1: { url: "https://zhn3br4w-n9.oss-cn-wulanchabu.aliyuncs.com/in8el-39no2/va-6pjw6/q-ABjXLcZUi?d=yPnT1MjZ&e=1&eTuXHTT=jmSi2Ay&ts=1789405954720", mode: "1", time: "" },
-        link2: { url: "", mode: "0", time: "" }
+        link1: { url: "https://zhn3br4w-n9.oss-cn-wulanchabu.aliyuncs.com/in8el-39no2/va-6pjw6/q-ABjXLcZUi?d=yPnT1MjZ&e=1&eTuXHTT=jmSi2Ay&ts=1789405954720", mode: "1", time: defaultTomorrowTime },
+        link2: { url: "", mode: "0", time: defaultTomorrowTime }
       }
     ];
 
     window.onload = function() {
       renderCards();
-      // 页面加载时尝试自动抓取同目录脚本（静默抓取）
       fetchLocalJS(true);
     };
 
@@ -290,7 +304,7 @@
                     </select>
                   </div>
                   <div>
-                    <label>预设生效时间（点击选择日历）</label>
+                    <label>预设生效时间（日历选择）</label>
                     <input type="datetime-local" class="field-l1-time" value="${l1TimeValue}">
                   </div>
                 </div>
@@ -310,7 +324,7 @@
                     </select>
                   </div>
                   <div>
-                    <label>预设生效时间（点击选择日历）</label>
+                    <label>预设生效时间（日历选择）</label>
                     <input type="datetime-local" class="field-l2-time" value="${l2TimeValue}">
                   </div>
                 </div>
@@ -348,12 +362,13 @@
     function addNavCard() {
       navData = collectData();
       const newId = `btn-${navData.length + 1}`;
+      const tomorrowStr = getTomorrowZeroStandardString();
       navData.push({
         id: newId,
         text: "🎞 新按钮标题 →",
         visible: "1",
-        link1: { url: "", mode: "1", time: "" },
-        link2: { url: "", mode: "0", time: "" }
+        link1: { url: "", mode: "1", time: tomorrowStr },
+        link2: { url: "", mode: "0", time: tomorrowStr }
       });
       renderCards();
     }
@@ -430,7 +445,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // 核心新增：直接 Fetch 抓取同目录下的 auto-update.js 并解析
     function fetchLocalJS(isSilent = false) {
       fetch('auto-update.js?t=' + Date.now())
         .then(res => {
@@ -442,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(err => {
           if (!isSilent) {
-            alert('读取失败：未找到同目录下的 auto-update.js，或当前环境不支持直接读取（如未通过 HTTP 方式打开）。');
+            alert('读取失败：未找到同目录下的 auto-update.js，或当前环境不支持本地 HTTP 协议。');
           }
         });
     }
