@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <!-- 防放大：限制缩放视角 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>导航栏可视化编辑器</title>
   <style>
@@ -17,7 +16,6 @@
     }
     h2 { text-align: center; color: #235085; margin-bottom: 24px; font-size: 1.6rem; }
     
-    /* 移动端 input/select/textarea 字号 >= 16px 防止自动放大 */
     input, select, textarea {
       font-size: 16px !important;
       width: 100%;
@@ -31,7 +29,6 @@
       border-color: #235085;
     }
 
-    /* 整体卡片样式 */
     .card {
       background: #fff;
       border-radius: 12px;
@@ -74,7 +71,6 @@
       color: #475569;
     }
     
-    /* 链接区块隔离样式 */
     .sub-box {
       padding: 18px;
       border-radius: 8px;
@@ -164,7 +160,6 @@
 
   <h2>导航栏可视化编辑器</h2>
 
-  <!-- 导入区 -->
   <div class="card" style="background: #f8fafc; border-left-color: #64748b;">
     <span class="card-title" style="color: #475569;">📥 导入已有配置</span>
     <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">已部署在同目录时，直接点击下方按钮可自动一键获取：</p>
@@ -178,7 +173,6 @@
     </details>
   </div>
 
-  <!-- 编辑区 -->
   <div id="navContainer"></div>
 
   <div class="action-btns">
@@ -193,7 +187,6 @@
   <textarea id="outputCode" readonly placeholder="点击上方生成按钮后，此处将生成 JS 代码..."></textarea>
 
   <script>
-    // 动态计算“第二天凌晨0点”的标准字符串 (YYYY/MM/DD 00:00:00)
     function getTomorrowZeroStandardString() {
       const d = new Date();
       d.setDate(d.getDate() + 1);
@@ -203,7 +196,6 @@
       return `${year}/${month}/${day} 00:00:00`;
     }
 
-    // 计算 datetime-local 显示格式 (YYYY-MM-DDTHH:mm)
     function getTomorrowZeroPickerString() {
       const d = new Date();
       d.setDate(d.getDate() + 1);
@@ -213,14 +205,12 @@
       return `${year}-${month}-${day}T00:00`;
     }
 
-    // 转换到 datetime-local 控件格式（若传入为空，则补上第二天凌晨0点）
     function formatToPickerValue(timeStr) {
       if (!timeStr) return getTomorrowZeroPickerString();
       const formatted = timeStr.replace(/\//g, '-').replace(' ', 'T');
       return formatted.length >= 16 ? formatted.substring(0, 16) : getTomorrowZeroPickerString();
     }
 
-    // 转换为标准时间格式保存 (YYYY/MM/DD HH:mm:ss)
     function formatToStandardTime(pickerStr) {
       if (!pickerStr) return getTomorrowZeroStandardString();
       const [date, time] = pickerStr.split('T');
@@ -228,7 +218,6 @@
       return `${year}/${month}/${day} ${time}:00`;
     }
 
-    // 初始化数据，链接1和链接2的时间统一预设为第二天凌晨0点
     const defaultTomorrowTime = getTomorrowZeroStandardString();
 
     let navData = [
@@ -290,7 +279,6 @@
                 <input type="text" class="field-text" value="${item.text}">
               </div>
               
-              <!-- 链接 1 区块 -->
               <div class="full sub-box sub-box-1">
                 <span class="sub-title">🔗 配置：链接 1（默认/基础链接）</span>
                 <label>URL 跳转地址</label>
@@ -310,7 +298,6 @@
                 </div>
               </div>
 
-              <!-- 链接 2 区块 -->
               <div class="full sub-box sub-box-2">
                 <span class="sub-title">⏱ 配置：链接 2（定时/新替换链接）</span>
                 <label>URL 跳转地址</label>
@@ -403,10 +390,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const checkLinkValid = (linkObj) => {
       if (!linkObj || !linkObj.url) return false;
-      if (linkObj.mode == '1') return true;
-      if (linkObj.mode == '0' && linkObj.time) {
-        const targetStamp = new Date(\`\${linkObj.time.replace(/-/g, '/')} GMT+0800\`).getTime();
-        return now >= targetStamp;
+      if (String(linkObj.mode) === '1') return true;
+      if (String(linkObj.mode) === '0' && linkObj.time) {
+        let isoStr = linkObj.time.replace(/\\//g, '-');
+        if (!isoStr.includes('T')) {
+          isoStr = isoStr.replace(' ', 'T');
+        }
+        if (!isoStr.endsWith('Z') && !isoStr.includes('+')) {
+          isoStr += '+08:00';
+        }
+        const targetStamp = new Date(isoStr).getTime();
+        return !isNaN(targetStamp) && now >= targetStamp;
       }
       return false;
     };
