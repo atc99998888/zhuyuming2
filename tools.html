@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <!-- 防放大：强制 1.0 缩放且禁止用户缩放 -->
+  <!-- 防放大：限制缩放视角 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>导航栏可视化编辑器</title>
   <style>
@@ -12,76 +12,98 @@
       max-width: 900px;
       margin: 20px auto;
       padding: 0 16px 60px;
-      background: #f4f7f6;
+      background: #eef2f5;
       color: #333;
     }
     h2 { text-align: center; color: #235085; margin-bottom: 24px; font-size: 1.6rem; }
-    
-    /* 防放大：移动端 input/select/textarea 字号必须 >= 16px */
+    
+    /* 移动端 input/select/textarea 字号 >= 16px 防止自动放大 */
     input, select, textarea {
       font-size: 16px !important;
       width: 100%;
       padding: 10px 12px;
-      border: 1px solid #ccc;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
       background: #fff;
     }
-    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #235085;
+    }
+
+    /* 整体卡片样式 */
     .card {
       background: #fff;
       border-radius: 12px;
       padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      margin-bottom: 28px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      border-left: 6px solid #235085; /* 左侧高亮边框 */
     }
+    
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #f0f0f0;
+      border-bottom: 2px solid #f1f5f9;
       padding-bottom: 14px;
       margin-bottom: 20px;
     }
-    .card-title { font-weight: bold; font-size: 1.2rem; color: #235085; }
+    .card-title { font-weight: bold; font-size: 1.25rem; color: #235085; }
+    
     .btn-danger {
-      background: #ff4d4f;
+      background: #ef4444;
       color: #fff;
       border: 0;
       padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
+      transition: background 0.2s;
     }
-    
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .btn-danger:hover { background: #dc2626; }
+    
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .full { grid-column: span 2; }
-    
+    
     label {
       display: block;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       margin-bottom: 6px;
-      color: #444;
+      color: #475569;
     }
-    
+    
+    /* 链接区块隔离样式 */
     .sub-box {
-      background: #f8fafc;
       padding: 18px;
       border-radius: 8px;
       border: 1px solid #e2e8f0;
-      margin-top: 10px;
+      margin-top: 8px;
     }
+    .sub-box-1 {
+      background: #f0fdf4; /* 链接1淡绿背景 */
+      border-color: #bbf7d0;
+    }
+    .sub-box-2 {
+      background: #f0f9ff; /* 链接2淡蓝背景 */
+      border-color: #bae6fd;
+    }
+    
     .sub-title {
       font-weight: bold;
-      color: #235085;
       margin-bottom: 12px;
-      font-size: 1.05rem;
-      display: block;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    
+    .sub-box-1 .sub-title { color: #15803d; }
+    .sub-box-2 .sub-title { color: #0369a1; }
+    
     .action-btns { display: flex; gap: 12px; margin-bottom: 24px; }
     .btn-main {
-      background: #4caf50;
+      background: #16a34a;
       color: white;
       border: 0;
       padding: 14px;
@@ -101,7 +123,18 @@
       cursor: pointer;
       font-weight: bold;
     }
-    
+    .btn-copy {
+      background: #0284c7;
+      color: white;
+      border: 0;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
     textarea {
       height: 180px;
       font-family: monospace;
@@ -120,11 +153,11 @@
   <h2>导航栏可视化编辑器</h2>
 
   <!-- 导入区 -->
-  <div class="card" style="background: #eef5ff; border: 1px solid #d0e2ff;">
-    <span class="card-title">导入已有 auto-update.js</span>
-    <p style="font-size: 0.9rem; color: #666; margin: 8px 0 12px;">粘贴你之前保存的 auto-update.js 代码，点击下方按钮恢复配置：</p>
+  <div class="card" style="background: #f8fafc; border-left-color: #64748b;">
+    <span class="card-title" style="color: #475569;">📥 导入已有 auto-update.js</span>
+    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">粘贴你之前保存的 auto-update.js 代码，点击下方按钮解析导入：</p>
     <textarea id="importCode" placeholder="在此粘贴 auto-update.js 代码..."></textarea>
-    <button class="btn-add" onclick="importJS()" style="margin-top: 12px; width: 100%;">读取并导入配置</button>
+    <button class="btn-add" onclick="importJS()" style="margin-top: 12px; width: 100%; background: #475569;">读取并导入配置</button>
   </div>
 
   <!-- 编辑区 -->
@@ -132,14 +165,17 @@
 
   <div class="action-btns">
     <button class="btn-add" onclick="addNavCard()">+ 新增导航按钮</button>
-    <button class="btn-main" onclick="generateJS()">生成 auto-update.js</button>
+    <button class="btn-main" onclick="generateJS()">⚡ 生成 auto-update.js</button>
   </div>
 
-  <h3>导出结果（复制后覆盖 auto-update.js）：</h3>
-  <textarea id="outputCode" readonly placeholder="点击上方生成按钮后，在此处复制 JS 代码..."></textarea>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h3>导出结果：</h3>
+    <button class="btn-copy" onclick="copyJS()">📋 一键复制 JS 代码</button>
+  </div>
+  <textarea id="outputCode" readonly placeholder="点击上方生成按钮后，此处将生成 JS 代码..."></textarea>
 
   <script>
-    // 计算第二天凌晨 0 点的 YYYY-MM-DDTHH:mm 格式字符串（用于 datetime-local 控件）
+    // 计算第二天凌晨 0 点的格式字符串 (YYYY-MM-DDTHH:mm)
     function getTomorrowZeroPickerString() {
       const d = new Date();
       d.setDate(d.getDate() + 1);
@@ -149,14 +185,14 @@
       return `${year}-${month}-${day}T00:00`;
     }
 
-    // 标准时间格式转换：把 YYYY/MM/DD HH:mm:ss 或 YYYY-MM-DD HH:mm:ss 转为 datetime-local 识别格式
+    // 时间转换：标准文本 -> datetime-local 格式
     function formatToPickerValue(timeStr) {
       if (!timeStr) return getTomorrowZeroPickerString();
       const formatted = timeStr.replace(/\//g, '-').replace(' ', 'T');
       return formatted.length >= 16 ? formatted.substring(0, 16) : getTomorrowZeroPickerString();
     }
 
-    // 将 datetime-local 的值 (YYYY-MM-DDTHH:mm) 转回标准 YYYY/MM/DD HH:mm:ss 文本
+    // 时间转换：datetime-local 格式 -> 标准文本 (YYYY/MM/DD HH:mm:ss)
     function formatToStandardTime(pickerStr) {
       if (!pickerStr) return '';
       const [date, time] = pickerStr.split('T');
@@ -164,7 +200,7 @@
       return `${year}/${month}/${day} ${time}:00`;
     }
 
-    // 默认数据结构
+    // 默认初始数据
     let navData = [
       {
         id: "btn-1",
@@ -201,8 +237,8 @@
         container.innerHTML += `
           <div class="card" data-index="${index}">
             <div class="card-header">
-              <span class="card-title">导航项 #${index + 1} (${item.id})</span>
-              <button class="btn-danger" onclick="removeCard(${index})">删除此项</button>
+              <span class="card-title">📌 导航按钮 #${index + 1} (${item.id})</span>
+              <button class="btn-danger" onclick="removeCard(${index})">🗑 删除导航</button>
             </div>
             <div class="grid">
               <div>
@@ -212,23 +248,23 @@
               <div>
                 <label>显示状态</label>
                 <select class="field-visible">
-                  <option value="1" ${item.visible === '1' ? 'selected' : ''}>显示 (1)</option>
-                  <option value="0" ${item.visible === '0' ? 'selected' : ''}>隐藏 (0)</option>
+                  <option value="1" ${item.visible === '1' ? 'selected' : ''}>👁 显示 (1)</option>
+                  <option value="0" ${item.visible === '0' ? 'selected' : ''}>🙈 隐藏 (0)</option>
                 </select>
               </div>
               <div class="full">
                 <label>按钮显示文字</label>
                 <input type="text" class="field-text" value="${item.text}">
               </div>
-              
-              <!-- 链接 1 配置 -->
-              <div class="full sub-box">
-                <span class="sub-title">配置：链接 1</span>
-                <label>URL 地址</label>
+              
+              <!-- 链接 1 区块 -->
+              <div class="full sub-box sub-box-1">
+                <span class="sub-title">🔗 配置：链接 1（默认/基础链接）</span>
+                <label>URL 跳转地址</label>
                 <input type="text" class="field-l1-url" value="${item.link1.url}">
                 <div class="grid" style="margin-top:12px;">
                   <div>
-                    <label>模式 (Mode)</label>
+                    <label>触发模式 (Mode)</label>
                     <select class="field-l1-mode">
                       <option value="1" ${item.link1.mode === '1' ? 'selected' : ''}>1 - 无视时间直接生效</option>
                       <option value="0" ${item.link1.mode === '0' ? 'selected' : ''}>0 - 需满足预设时间</option>
@@ -241,14 +277,14 @@
                 </div>
               </div>
 
-              <!-- 链接 2 配置 -->
-              <div class="full sub-box">
-                <span class="sub-title">配置：链接 2</span>
-                <label>URL 地址</label>
+              <!-- 链接 2 区块 -->
+              <div class="full sub-box sub-box-2">
+                <span class="sub-title">⏱ 配置：链接 2（定时/新替换链接）</span>
+                <label>URL 跳转地址</label>
                 <input type="text" class="field-l2-url" value="${item.link2.url}">
                 <div class="grid" style="margin-top:12px;">
                   <div>
-                    <label>模式 (Mode)</label>
+                    <label>触发模式 (Mode)</label>
                     <select class="field-l2-mode">
                       <option value="1" ${item.link2.mode === '1' ? 'selected' : ''}>1 - 无视时间直接生效</option>
                       <option value="0" ${item.link2.mode === '0' ? 'selected' : ''}>0 - 需满足预设时间</option>
@@ -360,6 +396,21 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('outputCode').value = code;
     }
 
+    function copyJS() {
+      const textarea = document.getElementById('outputCode');
+      if (!textarea.value) {
+        alert('请先点击“生成 auto-update.js”按钮！');
+        return;
+      }
+      textarea.select();
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        alert('已成功复制 JS 代码到剪贴板！');
+      }).catch(() => {
+        document.execCommand('copy');
+        alert('已成功复制 JS 代码！');
+      });
+    }
+
     function importJS() {
       const raw = document.getElementById('importCode').value;
       const match = raw.match(/const navConfigs = (\[[\s\S]*?\]);/);
@@ -378,4 +429,3 @@ document.addEventListener('DOMContentLoaded', function() {
   </script>
 </body>
 </html>
-
