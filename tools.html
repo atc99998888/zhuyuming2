@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>导航链接自动切换后台</title>
+  <title>GitHub Actions YML 可视化配置生成器</title>
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       max-width: 800px;
@@ -14,22 +14,23 @@
       background: #f1f5f9;
       color: #334155;
     }
-    h2 { text-align: center; color: #1e293b; margin-bottom: 24px; font-size: 1.6rem; }
+    h2 { text-align: center; color: #1e293b; margin-bottom: 20px; font-size: 1.5rem; }
     
     input, textarea {
       font-size: 16px !important;
       width: 100%;
-      padding: 12px;
+      padding: 10px 12px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       background: #fff;
+      margin-top: 4px;
     }
     
     .card {
       background: #fff;
       border-radius: 12px;
       padding: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       border-left: 6px solid #2563eb;
     }
@@ -38,53 +39,38 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
       border-bottom: 1px solid #e2e8f0;
     }
     
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .full { grid-column: span 2; }
-    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+    label { font-weight: 600; font-size: 0.88rem; color: #475569; }
     
-    .btn-del { background: #ef4444; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
-    .btn-add { background: #0f172a; color: #fff; border: 0; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 12px; }
-    .btn-gen { background: #16a34a; color: #fff; border: 0; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1.1rem; }
-    .btn-copy { background: #2563eb; color: #fff; border: 0; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-bottom: 8px; }
-    .btn-auto-fetch { background: #2563eb; color: white; border: 0; padding: 12px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 12px; }
+    .btn-del { background: #ef4444; color: #fff; border: 0; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    .btn-add { background: #0f172a; color: #fff; border: 0; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 12px; }
+    .btn-gen { background: #16a34a; color: #fff; border: 0; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1.05rem; }
+    .btn-copy { background: #2563eb; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
     
     @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .full { grid-column: span 1; } }
   </style>
 </head>
 <body>
 
-  <h2>6导航链接自动切换后台</h2>
-
-  <!-- 导入功能区 -->
-  <div class="card" style="background: #f8fafc; border-left-color: #64748b;">
-    <strong>📥 导入已有配置</strong>
-    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">兼容自动读取新/旧各种格式的 auto-update.js 代码：</p>
-    
-    <button class="btn-auto-fetch" onclick="fetchLocalJS()">🔄 一键读取同目录 auto-update.js</button>
-
-    <details style="margin-top: 10px;">
-      <summary style="cursor: pointer; color: #64748b; font-size: 0.85rem;">手动粘贴文本解析导入（备用）</summary>
-      <textarea id="importCode" placeholder="在此粘贴 auto-update.js 代码..." style="margin-top: 8px; height: 100px;"></textarea>
-      <button class="btn-add" onclick="importJS()" style="margin-top: 8px; background: #475569; padding: 10px;">解析输入的代码</button>
-    </details>
-  </div>
+  <h2>GitHub Actions YML 可视化生成器</h2>
 
   <div id="container"></div>
 
-  <button class="btn-add" onclick="addCard()">+ 新增导航项</button>
-  <button class="btn-gen" onclick="generate()">⚡ 生成并导出脚本代码</button>
+  <button class="btn-add" onclick="addCard()">+ 新增替换任务</button>
+  <button class="btn-gen" onclick="generateYml()">⚡ 生成 auto-update.yml 配置代码</button>
 
   <div style="margin-top: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h3>生成结果：</h3>
-      <button class="btn-copy" onclick="copyCode()">📋 一键复制</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h3 style="font-size: 1.1rem; color: #1e293b;">生成结果 (.github/workflows/auto-update.yml)：</h3>
+      <button class="btn-copy" onclick="copyYml()">📋 复制完整 YML</button>
     </div>
-    <textarea id="output" readonly style="height: 180px;"></textarea>
+    <textarea id="output" readonly style="height: 260px; font-family: monospace; font-size: 14px !important; background: #0f172a; color: #38bdf8;"></textarea>
   </div>
 
   <script>
@@ -97,48 +83,39 @@
       return `${y}-${m}-${day}T00:00`;
     }
 
-    let list = [
-      { id: "btn-1", text: "🎞全国最大交流总群.免费 →", oldUrl: "https://example.com/old1", newUrl: "https://example.com/new1", switchTime: getTomorrowZero() + ":00" },
-      { id: "btn-2", text: "🎞 亲测校园免费通道→不一样 →", oldUrl: "https://example.com/old2", newUrl: "https://example.com/new2", switchTime: getTomorrowZero() + ":00" }
+    // 预设默认的 3 个对应按钮
+    let tasks = [
+      { id: "btn-1", name: "🎞全国最大交流总群.免费 →", switchTime: getTomorrowZero(), newUrl: "https://your-new-link-1.com" },
+      { id: "btn-2", name: "🎞 亲测校园免费通道→不一样 →", switchTime: getTomorrowZero(), newUrl: "https://your-new-link-2.com" },
+      { id: "btn-3", name: "🎞 这个最全~各种搞笑视频→", switchTime: getTomorrowZero(), newUrl: "https://your-new-link-3.com" }
     ];
-
-    function formatPickerTime(timeStr) {
-      if (!timeStr) return getTomorrowZero();
-      let formatted = timeStr.replace(/\//g, '-').replace(' ', 'T');
-      return formatted.length >= 16 ? formatted.substring(0, 16) : getTomorrowZero();
-    }
 
     function render() {
       const box = document.getElementById('container');
       box.innerHTML = '';
-      list.forEach((item, index) => {
-        const pickerVal = formatPickerTime(item.switchTime);
+      tasks.forEach((item, index) => {
         box.innerHTML += `
           <div class="card" data-idx="${index}">
             <div class="card-header">
-              <strong>导航按钮 #${index + 1}</strong>
-              <button class="btn-del" onclick="del(${index})">删除</button>
+              <strong>配置任务 #${index + 1} (${item.name || item.id})</strong>
+              ${tasks.length > 1 ? `<button class="btn-del" onclick="del(${index})">删除</button>` : ''}
             </div>
             <div class="grid">
               <div>
-                <label>按钮 ID</label>
+                <label>按钮 ID (须与 index.html 一致)</label>
                 <input type="text" class="field-id" value="${item.id || ''}">
               </div>
               <div>
-                <label>切换时间（超过此时间自动跳新链接）</label>
-                <input type="datetime-local" class="field-time" value="${pickerVal}">
+                <label>切换时间 (超过此时间自动替换)</label>
+                <input type="datetime-local" class="field-time" value="${item.switchTime}">
               </div>
               <div class="full">
-                <label>按钮文字</label>
-                <input type="text" class="field-text" value="${item.text || ''}">
+                <label>按钮备注说明</label>
+                <input type="text" class="field-name" value="${item.name || ''}" placeholder="如：第一个石榴卡按钮">
               </div>
               <div class="full">
-                <label>当前/旧链接 (oldUrl)</label>
-                <input type="text" class="field-old" value="${item.oldUrl || ''}">
-              </div>
-              <div class="full">
-                <label>到期后新链接 (newUrl)</label>
-                <input type="text" class="field-new" value="${item.newUrl || ''}">
+                <label>到期后替换的新链接 (newUrl)</label>
+                <input type="text" class="field-url" value="${item.newUrl || ''}" placeholder="https://...">
               </div>
             </div>
           </div>
@@ -153,121 +130,115 @@
         const timeVal = c.querySelector('.field-time').value;
         res.push({
           id: c.querySelector('.field-id').value.trim(),
-          text: c.querySelector('.field-text').value,
-          oldUrl: c.querySelector('.field-old').value.trim(),
-          newUrl: c.querySelector('.field-new').value.trim(),
-          switchTime: timeVal ? (timeVal.length === 16 ? timeVal + ':00' : timeVal) : getTomorrowZero() + ':00'
+          name: c.querySelector('.field-name').value.trim(),
+          switchTime: timeVal ? (timeVal.length === 16 ? timeVal + ':00' : timeVal) : getTomorrowZero() + ':00',
+          newUrl: c.querySelector('.field-url').value.trim()
         });
       });
       return res;
     }
 
     function addCard() {
-      list = collect();
-      list.push({ id: `btn-${list.length + 1}`, text: "新按钮", oldUrl: "", newUrl: "", switchTime: getTomorrowZero() + ":00" });
+      tasks = collect();
+      tasks.push({ id: `btn-${tasks.length + 1}`, name: `新按钮 #${tasks.length + 1}`, switchTime: getTomorrowZero(), newUrl: "" });
       render();
     }
 
     function del(idx) {
-      list = collect();
-      list.splice(idx, 1);
+      tasks = collect();
+      tasks.splice(idx, 1);
       render();
     }
 
-    function generate() {
-      const data = collect();
-      const code = `const navConfigs = ${JSON.stringify(data, null, 2)};
+    function generateYml() {
+      const currentTasks = collect();
+      
+      const taskArrString = JSON.stringify(currentTasks.map(t => ({
+        id: t.id,
+        switchTime: t.switchTime,
+        newUrl: t.newUrl
+      })), null, 14).replace(/\n\s{12}\}/g, '\n            }');
 
-document.addEventListener('DOMContentLoaded', function() {
-  const menuBox = document.querySelector('.menu');
-  if (!menuBox) return;
+      const ymlCode = `name: 自动定时更新 index.html 链接
 
-  menuBox.innerHTML = '';
-  const now = new Date().getTime();
+on:
+  schedule:
+    # 每小时整点检查并自动替换
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
-  navConfigs.forEach(item => {
-    const btn = document.createElement('button');
-    btn.id = item.id;
-    btn.className = 'btn';
-    btn.innerText = item.text;
+jobs:
+  auto-rewrite-code:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-    // 时间兼容处理
-    let timeStr = item.switchTime ? item.switchTime.replace(/\\//g, '-').replace(' ', 'T') : '';
-    const targetTime = new Date(timeStr).getTime();
-    let targetUrl = item.oldUrl;
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
 
-    if (!isNaN(targetTime) && now >= targetTime && item.newUrl) {
-      targetUrl = item.newUrl;
+      - name: 执行替换
+        run: |
+          node -e '
+            const fs = require("fs");
+            let html = fs.readFileSync("index.html", "utf8");
+
+            // 自动生成的预设替换任务列表
+            const tasks = ${taskArrString};
+
+            let hasChanged = false;
+            const now = new Date();
+
+            tasks.forEach(task => {
+              if (!task.newUrl) return;
+              const targetTime = new Date(task.switchTime);
+              const regex = new RegExp(\`(id="\${task.id}"[\\\\s\\\\S]*?onclick="go\\\\(\\\\x27)(.*?)(?=\\\\x27\\\\)")\`);
+
+              if (now >= targetTime) {
+                const match = html.match(regex);
+                if (match && match[2] !== task.newUrl) {
+                  html = html.replace(regex, \`$1\${task.newUrl}\`);
+                  hasChanged = true;
+                  console.log(\`[成功] 按钮 \${task.id} 链接替换为: \${task.newUrl}\`);
+                }
+              }
+            });
+
+            if (hasChanged) {
+              fs.writeFileSync("index.html", html, "utf8");
+              console.log("index.html 自动修改保存成功！");
+            } else {
+              console.log("未到触发时间或无需修改。");
+            }
+          '
+
+      - name: 提交修改回 GitHub 仓库
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if [[ -n $(git status --porcelain) ]]; then
+            git add index.html
+            git commit -m "chore: 预设时间已到，Actions 自动更新 index.html 按钮链接"
+            git push
+          else
+            echo "没有任何变更，跳过提交"
+          fi`;
+
+      document.getElementById('output').value = ymlCode;
     }
 
-    btn.onclick = function() {
-      if (targetUrl && typeof window.go === 'function') {
-        window.go(targetUrl);
-      }
-    };
-
-    menuBox.appendChild(btn);
-  });
-});`;
-      document.getElementById('output').value = code;
-    }
-
-    function copyCode() {
+    function copyYml() {
       const txt = document.getElementById('output');
-      if (!txt.value) return alert('请先生成代码！');
+      if (!txt.value) return alert('请先点击生成按钮！');
       txt.select();
       navigator.clipboard.writeText(txt.value);
-      alert('已复制 JS 代码！');
-    }
-
-    // 智能解析：同时兼容新旧数据结构
-    function parseAndLoadJS(rawText, showNotice = true) {
-      const match = rawText.match(/const navConfigs = (\[[\s\S]*?\]);/);
-      if (match && match[1]) {
-        try {
-          const rawData = JSON.parse(match[1]);
-          list = rawData.map(item => {
-            // 如果是旧的数据结构 (包含 link1, link2)
-            if (item.link1 || item.link2) {
-              return {
-                id: item.id || '',
-                text: item.text || '',
-                oldUrl: (item.link1 && item.link1.url) ? item.link1.url : '',
-                newUrl: (item.link2 && item.link2.url) ? item.link2.url : '',
-                switchTime: (item.link2 && item.link2.time) ? item.link2.time : ((item.link1 && item.link1.time) ? item.link1.time : getTomorrowZero() + ':00')
-              };
-            }
-            // 新的数据结构直接读取
-            return item;
-          });
-          render();
-          if (showNotice) alert('解析成功并已转换加载配置！');
-        } catch (e) {
-          if (showNotice) alert('解析失败：JSON 语法错误');
-        }
-      } else {
-        if (showNotice) alert('未在代码中找到 navConfigs 变量数组！');
-      }
-    }
-
-    function fetchLocalJS() {
-      fetch('auto-update.js?t=' + Date.now())
-        .then(res => {
-          if (!res.ok) throw new Error();
-          return res.text();
-        })
-        .then(text => parseAndLoadJS(text, false))
-        .catch(() => {});
-    }
-
-    function importJS() {
-      const raw = document.getElementById('importCode').value;
-      parseAndLoadJS(raw, true);
+      alert('已复制 YML 代码！请直接粘贴到 .github/workflows/auto-update.yml 文件中。');
     }
 
     window.onload = function() {
       render();
-      fetchLocalJS();
+      generateYml();
     };
   </script>
 </body>
