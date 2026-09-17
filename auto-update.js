@@ -12,7 +12,7 @@ const navConfigs = [
     "link2": {
       "url": "https://cyberpolice.mps.gov.cn",
       "mode": "0",
-      "time": "2026/09/17 20:36:00"
+      "time": "2026/09/17 20:52:00"
     }
   },
   {
@@ -66,10 +66,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const checkLinkValid = (linkObj) => {
       if (!linkObj || !linkObj.url) return false;
-      if (linkObj.mode == '1') return true;
-      if (linkObj.mode == '0' && linkObj.time) {
-        const targetStamp = new Date(`${linkObj.time.replace(/-/g, '/')} GMT+0800`).getTime();
-        return now >= targetStamp;
+      if (String(linkObj.mode) === '1') return true;
+      if (String(linkObj.mode) === '0' && linkObj.time) {
+        let isoStr = linkObj.time.replace(/\//g, '-');
+        if (!isoStr.includes('T')) {
+          isoStr = isoStr.replace(' ', 'T');
+        }
+        if (!isoStr.endsWith('Z') && !isoStr.includes('+')) {
+          isoStr += '+08:00';
+        }
+        const targetStamp = new Date(isoStr).getTime();
+        return !isNaN(targetStamp) && now >= targetStamp;
       }
       return false;
     };
