@@ -55,6 +55,7 @@
     .btn-add { background: #0f172a; color: #fff; border: 0; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 12px; }
     .btn-gen { background: #16a34a; color: #fff; border: 0; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1.05rem; }
     .btn-copy { background: #2563eb; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .btn-fetch { background: #0f172a; color: #fff; border: 0; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold; width: 100%; margin-bottom: 12px; }
     .btn-import { background: #0284c7; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-top: 8px; font-weight: bold; }
     
     @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .full { grid-column: span 1; } }
@@ -75,15 +76,17 @@
     </div>
   </div>
 
-  <!-- 手动导入 index.html -->
+  <!-- 导入与获取区 -->
   <div class="card import-card">
     <div class="card-header">
-      <strong>📥 手动导入/解析 index.html 代码</strong>
+      <strong>📥 获取与解析 index.html 配置</strong>
     </div>
     <div>
-      <label>若未自动获取成功，可将 index.html 完整源码粘贴在下方：</label>
-      <textarea id="rawHtmlInput" placeholder="粘贴 index.html 源码..." style="height: 90px; font-size: 13px !important;"></textarea>
-      <button class="btn-import" onclick="parseCustomHtml()">解析 HTML 并提取按钮</button>
+      <button class="btn-fetch" onclick="fetchLocalIndexHtml()">🔗 一键获取同目录下的 index.html 配置</button>
+      
+      <label style="margin-top: 10px; display: block;">或者手动将 index.html 源码粘贴在下方：</label>
+      <textarea id="rawHtmlInput" placeholder="粘贴 index.html 源码..." style="height: 80px; font-size: 13px !important;"></textarea>
+      <button class="btn-import" onclick="parseCustomHtml()">解析代码并提取按钮</button>
     </div>
   </div>
 
@@ -110,9 +113,13 @@
       return `${y}-${m}-${day}T00:00`;
     }
 
-    let tasks = [];
+    let tasks = [
+      { id: "btn-1", name: "🎞全国最大交流总群.免费 →", newUrl: "https://your-new-link-1.com" },
+      { id: "btn-2", name: "🎞 亲测校园免费通道→不一样 →", newUrl: "https://your-new-link-2.com" },
+      { id: "btn-3", name: "🎞 这个最全~各种搞笑视频→", newUrl: "https://your-new-link-3.com" }
+    ];
 
-    // 从 HTML 代码文本中解析带有 id 和 onclick="go('...')" 的按钮
+    // 从 HTML 提取包含 id 和 onclick="go('...')" 的按钮
     function extractTasksFromHtml(htmlText) {
       const parsedTasks = [];
       const regex = /<button[^>]*id=["']([^"']+)["'][^>]*onclick=["']go\(['"]([^'"]+)['"]\)[^>]*>([\s\S]*?)<\/button>/gi;
@@ -126,11 +133,11 @@
       return parsedTasks;
     }
 
-    // 1. 自动读取同目录下的 index.html
+    // 手动一键获取同目录 index.html
     function fetchLocalIndexHtml() {
       fetch('index.html?t=' + Date.now())
         .then(res => {
-          if (!res.ok) throw new Error('网络响应异常');
+          if (!res.ok) throw new Error('未找到 index.html 文件');
           return res.text();
         })
         .then(text => {
@@ -139,16 +146,17 @@
             tasks = extracted;
             render();
             generateYml();
+            alert(`✅ 获取成功！已从同目录 index.html 提取出 ${extracted.length} 个按钮配置。`);
           } else {
-            fallbackDefaultTasks();
+            alert('⚠️ 获取成功，但未能在 index.html 中提取到符合格式的按钮数据！');
           }
         })
-        .catch(() => {
-          fallbackDefaultTasks();
+        .catch(err => {
+          alert('❌ 获取失败：' + err.message + '。请确保网页与 index.html 在同一目录下。');
         });
     }
 
-    // 2. 手动解析输入的 HTML
+    // 手动解析代码文本
     function parseCustomHtml() {
       const rawText = document.getElementById('rawHtmlInput').value;
       if (!rawText.trim()) {
@@ -160,21 +168,9 @@
         tasks = extracted;
         render();
         generateYml();
-        alert(`成功解析出 ${extracted.length} 个按钮数据！`);
+        alert(`✅ 解析成功！已提取出 ${extracted.length} 个按钮数据。`);
       } else {
-        alert('未在提交的代码中匹配到包含 id 和 onclick="go(\'...\')" 的按钮！');
-      }
-    }
-
-    function fallbackDefaultTasks() {
-      if (tasks.length === 0) {
-        tasks = [
-          { id: "btn-1", name: "🎞全国最大交流总群.免费 →", newUrl: "https://your-new-link-1.com" },
-          { id: "btn-2", name: "🎞 亲测校园免费通道→不一样 →", newUrl: "https://your-new-link-2.com" },
-          { id: "btn-3", name: "🎞 这个最全~各种搞笑视频→", newUrl: "https://your-new-link-3.com" }
-        ];
-        render();
-        generateYml();
+        alert('⚠️ 未能匹配到包含 id 和 onclick="go(\'...\')" 的按钮配置！');
       }
     }
 
@@ -336,7 +332,8 @@ jobs:
 
     window.onload = function() {
       document.getElementById('globalTime').value = getTomorrowZero();
-      fetchLocalIndexHtml();
+      render();
+      generateYml();
     };
   </script>
 </body>
