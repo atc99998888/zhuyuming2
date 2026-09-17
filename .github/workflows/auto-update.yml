@@ -2,8 +2,8 @@ name: 全能定时更新 index.html 导航配置
 
 on:
   schedule:
-    # 自动换算对应的 UTC 时间 (北京时间 2026-09-17 22:37)
-    - cron: '37 14 17 9 *'
+    # 自动换算对应的 UTC 时间 (北京时间 2026-09-17 22:42)
+    - cron: '42 14 17 9 *'
   workflow_dispatch:
 
 jobs:
@@ -39,22 +39,8 @@ jobs:
           {
                     "id": "btn-1",
                     "text": ">        🎞全国最大交流总群.免费 →",
-                    "url": "https://146n.cc/",
+                    "url": "https://cyberpolice.mps.gov.cn",
                     "status": "show",
-                    "isNew": false
-          },
-          {
-                    "id": "btn-2",
-                    "text": ">        🎞 亲测校园免费通道→不一样 →",
-                    "url": "https://mr-0ocw87f-bax8np1n6qa.oss-cn-guangzhou.aliyuncs.com/cpha/y-1dza/Updt?d=Ni6qnPs9&e=1&Y4aFnkle=QCYGwKGHM4of&ts=1789405953422",
-                    "status": "hide",
-                    "isNew": false
-          },
-          {
-                    "id": "btn-3",
-                    "text": ">        🎞 这个最全~各种搞笑视频→",
-                    "url": "https://zhn3br4w-n9.oss-cn-wulanchabu.aliyuncs.com/in8el-39no2/va-6pjw6/q-ABjXLcZUi?d=yPnT1MjZ&e=1&eTuXHTT=jmSi2Ay&ts=1789405954720",
-                    "status": "hide",
                     "isNew": false
           }
 ];
