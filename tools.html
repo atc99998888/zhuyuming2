@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GitHub Actions 可视化配置生成器</title>
+  <title>GitHub Actions 全能可视化配置生成器</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      max-width: 800px;
+      max-width: 850px;
       margin: 20px auto;
       padding: 0 16px 60px;
       background: #f1f5f9;
@@ -16,8 +16,8 @@
     }
     h2 { text-align: center; color: #1e293b; margin-bottom: 20px; font-size: 1.5rem; }
     
-    input, textarea {
-      font-size: 16px !important;
+    input, textarea, select {
+      font-size: 15px !important;
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #cbd5e1;
@@ -63,7 +63,7 @@
 </head>
 <body>
 
-  <h2>GitHub Actions YML 配置生成器</h2>
+  <h2>GitHub Actions 全能配置生成器</h2>
 
   <!-- 全局时间设置 -->
   <div class="card time-card">
@@ -76,23 +76,22 @@
     </div>
   </div>
 
-  <!-- 导入与获取区 -->
+  <!-- 导入区 -->
   <div class="card import-card">
     <div class="card-header">
       <strong>📥 获取与解析 index.html 配置</strong>
     </div>
     <div>
       <button class="btn-fetch" onclick="fetchLocalIndexHtml()">🔗 一键获取同目录下的 index.html 配置</button>
-      
-      <label style="margin-top: 10px; display: block;">或者手动将 index.html 源码粘贴在下方：</label>
-      <textarea id="rawHtmlInput" placeholder="粘贴 index.html 源码..." style="height: 80px; font-size: 13px !important;"></textarea>
-      <button class="btn-import" onclick="parseCustomHtml()">解析代码并提取按钮</button>
+      <label style="margin-top: 10px; display: block;">或者手动粘贴 index.html 源码：</label>
+      <textarea id="rawHtmlInput" placeholder="粘贴 index.html 源码..." style="height: 70px; font-size: 13px !important;"></textarea>
+      <button class="btn-import" onclick="parseCustomHtml()">解析代码并提取导航按钮</button>
     </div>
   </div>
 
   <div id="container"></div>
 
-  <button class="btn-add" onclick="addCard()">+ 新增替换按钮</button>
+  <button class="btn-add" onclick="addCard()">+ 新增导航按钮</button>
   <button class="btn-gen" onclick="generateYml()">⚡ 生成 auto-update.yml 配置代码</button>
 
   <div style="margin-top: 24px;">
@@ -100,7 +99,7 @@
       <h3 style="font-size: 1.1rem; color: #1e293b;">生成结果 (.github/workflows/auto-update.yml)：</h3>
       <button class="btn-copy" onclick="copyYml()">📋 复制完整 YML</button>
     </div>
-    <textarea id="output" readonly style="height: 280px; font-family: monospace; font-size: 14px !important; background: #0f172a; color: #38bdf8;"></textarea>
+    <textarea id="output" readonly style="height: 300px; font-family: monospace; font-size: 14px !important; background: #0f172a; color: #38bdf8;"></textarea>
   </div>
 
   <script>
@@ -114,26 +113,32 @@
     }
 
     let tasks = [
-      { id: "btn-1", name: "🎞全国最大交流总群.免费 →", newUrl: "https://your-new-link-1.com" },
-      { id: "btn-2", name: "🎞 亲测校园免费通道→不一样 →", newUrl: "https://your-new-link-2.com" },
-      { id: "btn-3", name: "🎞 这个最全~各种搞笑视频→", newUrl: "https://your-new-link-3.com" }
+      { id: "btn-1", text: "🎞全国最大交流总群.免费 →", url: "https://your-new-link-1.com", status: "show", isNew: false },
+      { id: "btn-2", text: "🎞 亲测校园免费通道→不一样 →", url: "https://your-new-link-2.com", status: "show", isNew: false },
+      { id: "btn-3", text: "🎞 这个最全~各种搞笑视频→", url: "https://your-new-link-3.com", status: "show", isNew: false }
     ];
 
-    // 从 HTML 提取包含 id 和 onclick="go('...')" 的按钮
     function extractTasksFromHtml(htmlText) {
       const parsedTasks = [];
-      const regex = /<button[^>]*id=["']([^"']+)["'][^>]*onclick=["']go\(['"]([^'"]+)['"]\)[^>]*>([\s\S]*?)<\/button>/gi;
+      const regex = /<button[^>]*id=["']([^"']+)["'][^>]*onclick=["']go\(['"]([^'"]+)['"]\)[^>]*([\s\S]*?)<\/button>/gi;
       let match;
       while ((match = regex.exec(htmlText)) !== null) {
+        const fullTag = match[0];
         const id = match[1];
-        const oldUrl = match[2];
-        const name = match[3].replace(/<[^>]+>/g, '').trim();
-        parsedTasks.push({ id, name, newUrl: oldUrl });
+        const url = match[2];
+        const text = match[3].replace(/<[^>]+>/g, '').trim();
+        const isHidden = /style=["'][^"']*display\s*:\s*none/i.test(fullTag);
+        parsedTasks.push({
+          id,
+          text,
+          url,
+          status: isHidden ? "hide" : "show",
+          isNew: false
+        });
       }
       return parsedTasks;
     }
 
-    // 手动一键获取同目录 index.html
     function fetchLocalIndexHtml() {
       fetch('index.html?t=' + Date.now())
         .then(res => {
@@ -146,7 +151,7 @@
             tasks = extracted;
             render();
             generateYml();
-            alert(`✅ 获取成功！已从同目录 index.html 提取出 ${extracted.length} 个按钮配置。`);
+            alert(`✅ 获取成功！已从同目录 index.html 提取出 ${extracted.length} 个导航按钮配置。`);
           } else {
             alert('⚠️ 获取成功，但未能在 index.html 中提取到符合格式的按钮数据！');
           }
@@ -156,7 +161,6 @@
         });
     }
 
-    // 手动解析代码文本
     function parseCustomHtml() {
       const rawText = document.getElementById('rawHtmlInput').value;
       if (!rawText.trim()) {
@@ -168,7 +172,7 @@
         tasks = extracted;
         render();
         generateYml();
-        alert(`✅ 解析成功！已提取出 ${extracted.length} 个按钮数据。`);
+        alert(`✅ 解析成功！已提取出 ${extracted.length} 个导航按钮。`);
       } else {
         alert('⚠️ 未能匹配到包含 id 和 onclick="go(\'...\')" 的按钮配置！');
       }
@@ -181,21 +185,29 @@
         box.innerHTML += `
           <div class="card" data-idx="${index}">
             <div class="card-header">
-              <strong>按钮配置 #${index + 1} (${item.name || item.id})</strong>
-              ${tasks.length > 1 ? `<button class="btn-del" onclick="del(${index})">删除</button>` : ''}
+              <strong>${item.isNew ? '✨ 新增导航按钮' : '导航按钮'} #${index + 1} (${item.id})</strong>
+              <button class="btn-del" onclick="del(${index})">${item.isNew ? '取消新增' : '删除此导航'}</button>
             </div>
             <div class="grid">
               <div>
-                <label>按钮 ID (须与 index.html 一致)</label>
-                <input type="text" class="field-id" value="${item.id || ''}">
+                <label>按钮 ID</label>
+                <input type="text" class="field-id" value="${item.id || ''}" ${!item.isNew ? 'readonly style="background:#f1f5f9;"' : ''}>
               </div>
               <div>
-                <label>按钮备注说明</label>
-                <input type="text" class="field-name" value="${item.name || ''}">
+                <label>状态 (显示/隐藏)</label>
+                <select class="field-status">
+                  <option value="show" ${item.status === 'show' ? 'selected' : ''}>显示 (Display: block)</option>
+                  <option value="hide" ${item.status === 'hide' ? 'selected' : ''}>隐藏 (Display: none)</option>
+                  <option value="delete">直接删除此 DOM 元素</option>
+                </select>
               </div>
               <div class="full">
-                <label>到期后替换的新链接 (newUrl)</label>
-                <input type="text" class="field-url" value="${item.newUrl || ''}" placeholder="https://...">
+                <label>导航展示文字</label>
+                <input type="text" class="field-text" value="${item.text || ''}" placeholder="例如：🎞 最新视频专区 →">
+              </div>
+              <div class="full">
+                <label>跳转链接 (URL)</label>
+                <input type="text" class="field-url" value="${item.url || ''}" placeholder="https://...">
               </div>
             </div>
           </div>
@@ -206,11 +218,13 @@
     function collect() {
       const cards = document.querySelectorAll('#container .card:not(.time-card):not(.import-card)');
       const res = [];
-      cards.forEach(c => {
+      cards.forEach((c, idx) => {
         res.push({
           id: c.querySelector('.field-id').value.trim(),
-          name: c.querySelector('.field-name').value.trim(),
-          newUrl: c.querySelector('.field-url').value.trim()
+          text: c.querySelector('.field-text').value.trim(),
+          url: c.querySelector('.field-url').value.trim(),
+          status: c.querySelector('.field-status').value,
+          isNew: tasks[idx] ? tasks[idx].isNew : false
         });
       });
       return res;
@@ -218,7 +232,8 @@
 
     function addCard() {
       tasks = collect();
-      tasks.push({ id: `btn-${tasks.length + 1}`, name: `新按钮 #${tasks.length + 1}`, newUrl: "" });
+      const newId = `btn-custom-${Date.now().toString().slice(-4)}`;
+      tasks.push({ id: newId, text: "新新增导航按钮 →", url: "https://", status: "show", isNew: true });
       render();
     }
 
@@ -243,7 +258,6 @@
         return;
       }
 
-      // 北京时间转换为 UTC 时间
       const utcDate = new Date(targetDate.getTime() - (8 * 60 * 60 * 1000));
       const min = utcDate.getMinutes();
       const hour = utcDate.getHours();
@@ -252,12 +266,9 @@
 
       const cronStr = `${min} ${hour} ${day} ${month} *`;
 
-      const taskArrString = JSON.stringify(currentTasks.map(t => ({
-        id: t.id,
-        newUrl: t.newUrl
-      })), null, 14).replace(/\n\s{12}\}/g, '\n            }');
+      const taskArrString = JSON.stringify(currentTasks, null, 14).replace(/\n\s{12}\}/g, '\n            }');
 
-      const ymlCode = `name: 定时更新 index.html 按钮链接
+      const ymlCode = `name: 全能定时更新 index.html 导航配置
 
 on:
   schedule:
@@ -275,34 +286,88 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: 执行链接替换
+      - name: 执行 DOM 自动化修改
         run: |
           node -e '
             const fs = require("fs");
-            let html = fs.readFileSync("index.html", "utf8");
+            const { JSDOM } = require("jsdom"); // 依赖 jsdom 库处理全量 HTML 解析
 
-            // 要替换的新链接列表
+            // 1. 安装临时解析环境
+            const execSync = require("child_process").execSync;
+            try { require("jsdom"); } catch (e) {
+              console.log("正在安装 HTML 解析库...");
+              execSync("npm install jsdom");
+            }
+
+            const { JSDOM } = require("jsdom");
+            let htmlContent = fs.readFileSync("index.html", "utf8");
+            const dom = new JSDOM(htmlContent);
+            const document = dom.window.document;
+
+            // 预设配置项
             const tasks = ${taskArrString};
 
             let hasChanged = false;
 
             tasks.forEach(task => {
-              if (!task.newUrl) return;
-              const regex = new RegExp(\`(id="\${task.id}"[\\\\s\\\\S]*?onclick="go\\\\(\\\\x27)(.*?)(?=\\\\x27\\\\)")\`);
+              let el = document.getElementById(task.id);
 
-              const match = html.match(regex);
-              if (match && match[2] !== task.newUrl) {
-                html = html.replace(regex, \`$1\${task.newUrl}\`);
+              // 1. 删除节点逻辑
+              if (task.status === "delete") {
+                if (el) {
+                  el.remove();
+                  hasChanged = true;
+                  console.log(\`[删除] 成功移除 ID: \${task.id} 的导航按钮\`);
+                }
+                return;
+              }
+
+              // 2. 如果是新增的节点且不存在，则在页面末尾或容器中创建
+              if (!el && task.isNew) {
+                el = document.createElement("button");
+                el.id = task.id;
+                el.className = "btn"; // 保留原样式类
+                
+                // 找到第一个按钮的父容器插入
+                const firstBtn = document.querySelector("button");
+                if (firstBtn && firstBtn.parentNode) {
+                  firstBtn.parentNode.appendChild(el);
+                } else {
+                  document.body.appendChild(el);
+                }
                 hasChanged = true;
-                console.log(\`[成功] 按钮 \${task.id} 链接已更新为: \${task.newUrl}\`);
+                console.log(\`[新增] 成功创建新导航按钮 ID: \${task.id}\`);
+              }
+
+              if (el) {
+                // 修改跳转链接与 onclick
+                el.setAttribute("onclick", \`go('\${task.url}')\`);
+                
+                // 修改文本内容
+                if (el.textContent !== task.text) {
+                  el.textContent = task.text;
+                  hasChanged = true;
+                }
+
+                // 显隐逻辑处理
+                if (task.status === "hide") {
+                  el.style.display = "none";
+                  hasChanged = true;
+                } else if (task.status === "show") {
+                  if (el.style.display === "none") {
+                    el.style.display = "";
+                    hasChanged = true;
+                  }
+                }
+                console.log(\`[更新] 按钮 \${task.id} 配置更新成功\`);
               }
             });
 
             if (hasChanged) {
-              fs.writeFileSync("index.html", html, "utf8");
-              console.log("index.html 代码更新保存成功！");
+              fs.writeFileSync("index.html", dom.serialize(), "utf8");
+              console.log("index.html 全量更新保存成功！");
             } else {
-              console.log("链接无需更新。");
+              console.log("无可变更内容。");
             }
           '
 
@@ -313,7 +378,7 @@ jobs:
           
           if [[ -n $(git status --porcelain) ]]; then
             git add index.html
-            git commit -m "chore: 预设时间已到，Actions 自动修改 index.html 链接"
+            git commit -m "chore: 预设时间已到，全能修改 index.html 导航与链接"
             git push
           else
             echo "没有任何变更，跳过提交"
