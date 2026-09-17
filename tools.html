@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GitHub Actions 8全能可视化配置生成器</title>
+  <title>index.html 完整版全能可视化生成器</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      max-width: 850px;
+      max-width: 900px;
       margin: 20px auto;
       padding: 0 16px 60px;
       background: #f1f5f9;
@@ -63,15 +63,15 @@
 </head>
 <body>
 
-  <h2>GitHub Actions 全能配置生成器</h2>
+  <h2>index.html 完整版全能可视化生成器</h2>
 
   <!-- 全局时间设置 -->
   <div class="card time-card">
     <div class="card-header">
-      <strong>⏰ 自动化执行时间设置（北京时间）</strong>
+      <strong>⏰ 设定定时自动更新的时间（本地时间）</strong>
     </div>
     <div>
-      <label>请选择希望 GitHub 自动更新代码的具体时间：</label>
+      <label>到达该时间后，网页自动应用下方设置的新内容：</label>
       <input type="datetime-local" id="globalTime">
     </div>
   </div>
@@ -79,30 +79,106 @@
   <!-- 导入区 -->
   <div class="card import-card">
     <div class="card-header">
-      <strong>📥 获取与解析 index.html 配置</strong>
+      <strong>📥 导入你的 index.html 源码</strong>
     </div>
     <div>
-      <button class="btn-fetch" onclick="fetchLocalIndexHtml()">🔗 一键获取同目录下的 index.html 配置</button>
-      <label style="margin-top: 10px; display: block;">或者手动粘贴 index.html 源码：</label>
-      <textarea id="rawHtmlInput" placeholder="粘贴 index.html 源码..." style="height: 70px; font-size: 13px !important;"></textarea>
-      <button class="btn-import" onclick="parseCustomHtml()">解析代码并提取导航按钮</button>
+      <button class="btn-fetch" onclick="fetchLocalIndexHtml()">🔗 一键读取同目录下的 index.html</button>
+      <label style="margin-top: 10px; display: block;">或者手动将你的 index.html 完整代码粘贴到下方：</label>
+      <textarea id="rawHtmlInput" placeholder="粘贴完整的 index.html 源码..." style="height: 90px; font-size: 13px !important;"></textarea>
+      <button class="btn-import" onclick="parseCustomHtml()">解析代码并加载按钮</button>
     </div>
   </div>
 
   <div id="container"></div>
 
   <button class="btn-add" onclick="addCard()">+ 新增导航按钮</button>
-  <button class="btn-gen" onclick="generateYml()">⚡ 生成 auto-update.yml 配置代码</button>
+  <button class="btn-gen" onclick="generateFullHtml()">⚡ 一键生成带有定时控制的完整 index.html 代码</button>
 
   <div style="margin-top: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <h3 style="font-size: 1.1rem; color: #1e293b;">生成结果 (.github/workflows/auto-update.yml)：</h3>
-      <button class="btn-copy" onclick="copyYml()">📋 复制完整 YML</button>
+      <h3 style="font-size: 1.1rem; color: #1e293b;">生成的完整 index.html 源码：</h3>
+      <button class="btn-copy" onclick="copyFullHtml()">📋 复制完整源码</button>
     </div>
-    <textarea id="output" readonly style="height: 300px; font-family: monospace; font-size: 14px !important; background: #0f172a; color: #38bdf8;"></textarea>
+    <textarea id="output" readonly style="height: 320px; font-family: monospace; font-size: 13px !important; background: #0f172a; color: #38bdf8;"></textarea>
   </div>
 
   <script>
+    // 默认保存一份你的完整模板作为兜底
+    let baseHtmlTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Greenfield University · Official Website</title>
+<meta name="description" content="Greenfield University — private research university offering 120+ majors, global research labs and inclusive student life since 1896.">
+<style>
+  :root{--g:#4caf50;--gd:#388e3c;--bg:#f1f8f4;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);font-family:"Segoe UI","Roboto",Arial,sans-serif;}
+  header{display:flex;flex-direction:column;align-items:center;justify-content:center;height:calc(100% - 110px);gap:38px;text-align:center}
+  .title{font-size:1.9rem;font-weight:700;color:#235085;letter-spacing:.04em}
+  .subtitle{font-size:.9rem;color:#49648e;margin-top:6px}
+  .menu{display:flex;flex-direction:column;gap:18px;width:86vw;max-width:320px}
+  .btn{display:block;width:100%;background:var(--g);color:#fff;border:0;border-radius:10px;padding:18px 0;font-size:1.08rem;font-weight:600;cursor:pointer;transition:background .18s}
+  .btn:hover{background:var(--gd)}
+  details{width:100%;max-width:920px;margin:20px auto}
+  summary{list-style:none;font-size:.95rem;color:#4d5a75;cursor:pointer;text-align:center;padding:10px 0}
+  summary::after{content:"▼";margin-left:6px;font-size:.7rem;transition:transform .2s}
+  details[open] summary{color:#235085;font-weight:600}
+  details[open] summary::after{transform:rotate(180deg)}
+  .info-box{background:#fff;border-radius:12px;box-shadow:0 2px 14px #b7c9e130;padding:34px 28px;margin-top:6px;line-height:1.78;color:#253553;font-size:1.05rem;max-height:70vh;overflow:auto}
+  .info-box h2{font-size:1.18rem;color:#235085;margin:24px 0 10px;font-weight:700}
+  .info-box ul{padding-left:22px}
+  footer{position:fixed;left:0;bottom:0;width:100vw;background:var(--bg);font-size:.83rem;color:#7685a2;text-align:center;line-height:1.6;padding:12px 8px 16px}
+  footer a{color:inherit;text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  #loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.75);z-index:9999}
+  #loading span{font-size:1rem;color:#235085;font-weight:600;letter-spacing:.03em}
+  #loading i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#235085;margin-left:8px;animation:spin 1s linear infinite}
+  @keyframes spin{0%{transform:scale(1)}50%{transform:scale(1.6);opacity:.5}100%{transform:scale(1)}}
+  @media(max-width:620px){.title{font-size:1.3rem}.btn{font-size:.97rem}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="title">Greenfield University</div>
+    <div class="subtitle">下面每一个都不同，建议全部下载留存</div>
+  </div>
+  <div class="menu">
+    <button id="btn-1" class="btn" data-visible="1" onclick="go('https://khxm7iv3ws-hhhkg.oss-cn-wulanchabu.aliyuncs.com/uls-2b7pdd-4p/z-xr-u4/tL-Psr?d=iGxzV4c6&e=1&J0WAjeQ=4D4BwiAuCLPQm6&ts=1789405952159')">🎞全国最大交流总群.免费 →</button>
+    <button id="btn-2" class="btn" data-visible="1" onclick="go('https://mr-0ocw87f-bax8np1n6qa.oss-cn-guangzhou.aliyuncs.com/cpha/y-1dza/Updt?d=Ni6qnPs9&e=1&Y4aFnkle=QCYGwKGHM4of&ts=1789405953422')">🎞 亲测校园免费通道→不一样 →</button> 
+    <button id="btn-3" class="btn" data-visible="1" onclick="go('https://zhn3br4w-n9.oss-cn-wulanchabu.aliyuncs.com/in8el-39no2/va-6pjw6/q-ABjXLcZUi?d=yPnT1MjZ&e=1&eTuXHTT=jmSi2Ay&ts=1789405954720')">🎞 这个最全~各种搞笑视频→</button>   
+  </div>
+</header>
+<details id="infoBox">
+  <summary>University Info</summary>
+  <div class="info-box">
+    <h2>Mission &amp; Vision</h2>
+    <p>Greenfield University's mission is to advance human knowledge and foster global leaders through inquiry-driven education, interdisciplinary research and civic engagement.</p>
+  </div>
+</details>
+<footer>
+  © 2025 Greenfield University. <a href="#">Privacy Policy</a>
+</footer>
+<div id="loading"><span>Loading<i></i></span></div>
+<script>
+  function go(url){
+    window.open(url,'_blank','noopener');
+    const mask=document.getElementById('loading');
+    mask.style.display='flex';
+    setTimeout(()=>{ mask.style.display='none'; },3000);
+  }
+  document.getElementById('infoBox').addEventListener('toggle',e=>{
+    document.body.style.overflow = e.target.open ? 'auto' : 'hidden';
+  });
+</script>
+</body>
+</html>`;
+
+    let activeHtml = baseHtmlTemplate;
+    let tasks = [];
+
     function getTomorrowZero() {
       const d = new Date();
       d.setDate(d.getDate() + 1);
@@ -112,70 +188,61 @@
       return `${y}-${m}-${day}T00:00`;
     }
 
-    let tasks = [
-      { id: "btn-1", text: "🎞全国最大交流总群.免费 →", url: "https://your-new-link-1.com", status: "show", isNew: false },
-      { id: "btn-2", text: "🎞 亲测校园免费通道→不一样 →", url: "https://your-new-link-2.com", status: "show", isNew: false },
-      { id: "btn-3", text: "🎞 这个最全~各种搞笑视频→", url: "https://your-new-link-3.com", status: "show", isNew: false }
-    ];
-
-    function extractTasksFromHtml(htmlText) {
-      const parsedTasks = [];
+    // 从 HTML 中提取按钮
+    function extractTasks(htmlText) {
+      const parsed = [];
       const regex = /<button[^>]*id=["']([^"']+)["'][^>]*onclick=["']go\(['"]([^'"]+)['"]\)[^>]*([\s\S]*?)<\/button>/gi;
       let match;
       while ((match = regex.exec(htmlText)) !== null) {
-        const fullTag = match[0];
-        const id = match[1];
-        const url = match[2];
-        const text = match[3].replace(/<[^>]+>/g, '').trim();
-        const isHidden = /style=["'][^"']*display\s*:\s*none/i.test(fullTag);
-        parsedTasks.push({
-          id,
-          text,
-          url,
-          status: isHidden ? "hide" : "show",
+        parsed.push({
+          id: match[1],
+          url: match[2],
+          text: match[3].replace(/<[^>]+>/g, '').trim(),
+          status: "show",
           isNew: false
         });
       }
-      return parsedTasks;
+      return parsed;
+    }
+
+    function loadHtmlData(htmlText) {
+      activeHtml = htmlText;
+      tasks = extractTasks(htmlText);
+      if (tasks.length === 0) {
+        // 如果没抓到，给默认3个
+        tasks = [
+          { id: "btn-1", text: "🎞全国最大交流总群.免费 →", url: "https://...", status: "show", isNew: false },
+          { id: "btn-2", text: "🎞 亲测校园免费通道→不一样 →", url: "https://...", status: "show", isNew: false },
+          { id: "btn-3", text: "🎞 这个最全~各种搞笑视频→", url: "https://...", status: "show", isNew: false }
+        ];
+      }
+      render();
+      generateFullHtml();
     }
 
     function fetchLocalIndexHtml() {
       fetch('index.html?t=' + Date.now())
         .then(res => {
-          if (!res.ok) throw new Error('未找到 index.html 文件');
+          if (!res.ok) throw new Error('未找到文件');
           return res.text();
         })
         .then(text => {
-          const extracted = extractTasksFromHtml(text);
-          if (extracted.length > 0) {
-            tasks = extracted;
-            render();
-            generateYml();
-            alert(`✅ 获取成功！已从同目录 index.html 提取出 ${extracted.length} 个导航按钮配置。`);
-          } else {
-            alert('⚠️ 获取成功，但未能在 index.html 中提取到符合格式的按钮数据！');
-          }
+          loadHtmlData(text);
+          alert('✅ 成功加载同目录下的 index.html！');
         })
         .catch(err => {
-          alert('❌ 获取失败：' + err.message + '。请确保网页与 index.html 在同一目录下。');
+          alert('❌ 读取失败，请直接在下方文本框粘贴你的 index.html 源码。');
         });
     }
 
     function parseCustomHtml() {
-      const rawText = document.getElementById('rawHtmlInput').value;
-      if (!rawText.trim()) {
-        alert('请先粘贴 index.html 代码！');
+      const raw = document.getElementById('rawHtmlInput').value;
+      if (!raw.trim()) {
+        alert('请先粘贴代码！');
         return;
       }
-      const extracted = extractTasksFromHtml(rawText);
-      if (extracted.length > 0) {
-        tasks = extracted;
-        render();
-        generateYml();
-        alert(`✅ 解析成功！已提取出 ${extracted.length} 个导航按钮。`);
-      } else {
-        alert('⚠️ 未能匹配到包含 id 和 onclick="go(\'...\')" 的按钮配置！');
-      }
+      loadHtmlData(raw);
+      alert('✅ 解析成功！');
     }
 
     function render() {
@@ -186,28 +253,28 @@
           <div class="card" data-idx="${index}">
             <div class="card-header">
               <strong>${item.isNew ? '✨ 新增导航按钮' : '导航按钮'} #${index + 1} (${item.id})</strong>
-              <button class="btn-del" onclick="del(${index})">${item.isNew ? '取消新增' : '删除此导航'}</button>
+              <button class="btn-del" onclick="del(${index})">${item.isNew ? '取消' : '删除'}</button>
             </div>
             <div class="grid">
               <div>
                 <label>按钮 ID</label>
-                <input type="text" class="field-id" value="${item.id || ''}" ${!item.isNew ? 'readonly style="background:#f1f5f9;"' : ''}>
+                <input type="text" class="field-id" value="${item.id || ''}">
               </div>
               <div>
-                <label>状态 (显示/隐藏)</label>
+                <label>到达时间后的状态</label>
                 <select class="field-status">
-                  <option value="show" ${item.status === 'show' ? 'selected' : ''}>显示</option>
-                  <option value="hide" ${item.status === 'hide' ? 'selected' : ''}>隐藏 (Display: none)</option>
-                  <option value="delete">彻底删除此 DOM</option>
+                  <option value="show" ${item.status === 'show' ? 'selected' : ''}>显示 (更新文字与链接)</option>
+                  <option value="hide" ${item.status === 'hide' ? 'selected' : ''}>到时间后自动隐藏</option>
+                  <option value="remove" ${item.status === 'remove' ? 'selected' : ''}>到时间后彻底移除</option>
                 </select>
               </div>
               <div class="full">
-                <label>导航展示文字</label>
-                <input type="text" class="field-text" value="${item.text || ''}" placeholder="例如：🎞 最新视频专区 →">
+                <label>到达时间后的展示文字</label>
+                <input type="text" class="field-text" value="${item.text || ''}">
               </div>
               <div class="full">
-                <label>跳转链接 (URL)</label>
-                <input type="text" class="field-url" value="${item.url || ''}" placeholder="https://...">
+                <label>到达时间后的跳转链接 (URL)</label>
+                <input type="text" class="field-url" value="${item.url || ''}">
               </div>
             </div>
           </div>
@@ -233,7 +300,7 @@
     function addCard() {
       tasks = collect();
       const newId = `btn-${Date.now().toString().slice(-4)}`;
-      tasks.push({ id: newId, text: "新新增导航按钮 →", url: "https://", status: "show", isNew: true });
+      tasks.push({ id: newId, text: "新导航按钮 →", url: "https://", status: "show", isNew: true });
       render();
     }
 
@@ -243,141 +310,85 @@
       render();
     }
 
-    function generateYml() {
+    function generateFullHtml() {
       const currentTasks = collect();
       const timeVal = document.getElementById('globalTime').value;
 
       if (!timeVal) {
-        alert('请先选择触发更新的具体时间！');
+        alert('请先选择时间！');
         return;
       }
 
-      const targetDate = new Date(timeVal);
-      if (isNaN(targetDate.getTime())) {
-        alert('时间格式无效');
-        return;
-      }
+      const targetDateStr = timeVal.replace('T', ' ');
+      const tasksJson = JSON.stringify(currentTasks, null, 4);
 
-      const utcDate = new Date(targetDate.getTime() - (8 * 60 * 60 * 1000));
-      const min = utcDate.getMinutes();
-      const hour = utcDate.getHours();
-      const day = utcDate.getDate();
-      const month = utcDate.getMonth() + 1;
+      // 组装定时 JS 脚本
+      const scriptBlock = `
+<!-- ⏰ 自动定时更新控制脚本 -->
+<script>
+  (function() {
+    const targetTime = new Date("${targetDateStr}").getTime();
+    const now = new Date().getTime();
 
-      const cronStr = `${min} ${hour} ${day} ${month} *`;
-      const tasksJson = JSON.stringify(currentTasks);
+    if (now >= targetTime) {
+      document.addEventListener("DOMContentLoaded", function() {
+        const updates = ${tasksJson};
 
-      const ymlCode = `name: 定时全量更新 index.html 导航
+        updates.forEach(item => {
+          let el = document.getElementById(item.id);
 
-on:
-  schedule:
-    # 北京时间 ${timeVal.replace('T', ' ')} 转换为 UTC 时间
-    - cron: '${cronStr}'
-  workflow_dispatch:
-
-jobs:
-  auto-update:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: 拉取源码
-        uses: actions/checkout@v4
-
-      - name: 执行 HTML 精准替换
-        run: |
-          node -e '
-          const fs = require("fs");
-          const tasks = ${tasksJson};
-          let html = fs.readFileSync("index.html", "utf8");
-          let modified = false;
-
-          tasks.forEach(t => {
-            const pattern = new RegExp("<button[^>]*id=[\\"\\']" + t.id + "[\\"\\'][^>]*>([\\\\s\\\\S]*?)</button>", "i");
-            const match = html.match(pattern);
-
-            if (t.status === "delete") {
-              if (match) {
-                html = html.replace(match[0], "");
-                modified = true;
-                console.log("[已删除按钮]: " + t.id);
-              }
-            } else if (match) {
-              let tag = match[0];
-              let newTag = tag;
-
-              // 1. 更新 onclick 链接
-              newTag = newTag.replace(/onclick=["\']go\([^)]*\)["\']/i, "onclick=\\"go(\x27" + t.url + "\x27)\\"");
-
-              // 2. 更新显隐状态
-              if (t.status === "hide") {
-                if (!/style=/i.test(newTag)) {
-                  newTag = newTag.replace("<button", "<button style=\\"display:none;\\"");
-                } else if (!/display\\s*:\\s*none/i.test(newTag)) {
-                  newTag = newTag.replace(/style=["\']/i, "$&display:none; ");
-                }
-              } else if (t.status === "show") {
-                newTag = newTag.replace(/style=["\'][^"']*display\s*:\s*none;?[^"']*["\']/gi, "");
-              }
-
-              // 3. 更新按钮文字
-              newTag = newTag.replace(/>([\s\S]*?)<\/button>/i, ">" + t.text + "</button>");
-
-              if (tag !== newTag) {
-                html = html.replace(tag, newTag);
-                modified = true;
-                console.log("[已更新按钮]: " + t.id);
-              }
-            } else if (t.isNew && t.status !== "delete") {
-              // 新增按钮处理：插入到最后一个 button 后面
-              const styleAttr = t.status === "hide" ? " style=\\"display:none;\\"" : "";
-              const newButtonHtml = "\\n  <button id=\\"" + t.id + "\\"" + styleAttr + " onclick=\\"go(\x27" + t.url + "\x27)\\">" + t.text + "</button>";
-              
-              const lastBtnIndex = html.lastIndexOf("</button>");
-              if (lastBtnIndex !== -1) {
-                html = html.slice(0, lastBtnIndex + 9) + newButtonHtml + html.slice(lastBtnIndex + 9);
-                modified = true;
-                console.log("[已新增按钮]: " + t.id);
-              }
+          if (!el && item.isNew) {
+            el = document.createElement("button");
+            el.id = item.id;
+            el.className = "btn";
+            const menuBox = document.querySelector(".menu");
+            if (menuBox) {
+              menuBox.appendChild(el);
+            } else {
+              document.body.appendChild(el);
             }
-          });
-
-          if (modified) {
-            fs.writeFileSync("index.html", html, "utf8");
-            console.log("index.html 保存成功！");
-          } else {
-            console.log("未发生任何改动。");
           }
-          '
 
-      - name: 提交改动到仓库
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          if [[ -n $(git status --porcelain) ]]; then
-            git add index.html
-            git commit -m "chore: 预设时间到，Actions 自动更改 index.html 导航"
-            git push
-          else
-            echo "没有修改内容，跳过提交"
-          fi`;
+          if (el) {
+            if (item.status === "remove") {
+              el.remove();
+            } else if (item.status === "hide") {
+              el.style.display = "none";
+            } else {
+              el.style.display = "";
+              el.innerText = item.text;
+              el.setAttribute("onclick", "go('" + item.url + "')");
+            }
+          }
+        });
+      });
+    }
+  })();
+<\/script>
+</body>`;
 
-      document.getElementById('output').value = ymlCode;
+      // 将脚本插入到原 HTML 的 </body> 之前
+      let finalHtml = activeHtml;
+      if (finalHtml.includes('</body>')) {
+        finalHtml = finalHtml.replace('</body>', scriptBlock);
+      } else {
+        finalHtml += scriptBlock;
+      }
+
+      document.getElementById('output').value = finalHtml;
     }
 
-    function copyYml() {
+    function copyFullHtml() {
       const txt = document.getElementById('output');
-      if (!txt.value) return alert('请先点击生成按钮！');
+      if (!txt.value) return alert('请先生成代码！');
       txt.select();
       navigator.clipboard.writeText(txt.value);
-      alert('已复制 YML 代码！请直接粘贴覆盖 .github/workflows/auto-update.yml 文件。');
+      alert('✅ 完整版 index.html 源码已复制！请直接覆盖你项目里的 index.html 文件。');
     }
 
     window.onload = function() {
       document.getElementById('globalTime').value = getTomorrowZero();
-      render();
-      generateYml();
+      loadHtmlData(baseHtmlTemplate);
     };
   </script>
 </body>
