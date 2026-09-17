@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GitHub Actions YML 可视化配置生成器</title>
+  <title>GitHub Actions 可视化配置生成器</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -34,6 +34,9 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       border-left: 6px solid #2563eb;
     }
+
+    .time-card { border-left-color: #0f172a; background: #f8fafc; }
+    .import-card { border-left-color: #0284c7; background: #f0f9ff; }
     
     .card-header {
       display: flex;
@@ -52,17 +55,41 @@
     .btn-add { background: #0f172a; color: #fff; border: 0; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 12px; }
     .btn-gen { background: #16a34a; color: #fff; border: 0; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1.05rem; }
     .btn-copy { background: #2563eb; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .btn-import { background: #0284c7; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-top: 8px; font-weight: bold; }
     
     @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .full { grid-column: span 1; } }
   </style>
 </head>
 <body>
 
-  <h2>GitHub Actions YML 可视化生成器</h2>
+  <h2>GitHub Actions YML 配置生成器</h2>
+
+  <!-- 全局时间设置 -->
+  <div class="card time-card">
+    <div class="card-header">
+      <strong>⏰ 自动化执行时间设置（北京时间）</strong>
+    </div>
+    <div>
+      <label>请选择希望 GitHub 自动更新代码的具体时间：</label>
+      <input type="datetime-local" id="globalTime">
+    </div>
+  </div>
+
+  <!-- 手动导入 index.html -->
+  <div class="card import-card">
+    <div class="card-header">
+      <strong>📥 手动导入/解析 index.html 代码</strong>
+    </div>
+    <div>
+      <label>若未自动获取成功，可将 index.html 完整源码粘贴在下方：</label>
+      <textarea id="rawHtmlInput" placeholder="粘贴 index.html 源码..." style="height: 90px; font-size: 13px !important;"></textarea>
+      <button class="btn-import" onclick="parseCustomHtml()">解析 HTML 并提取按钮</button>
+    </div>
+  </div>
 
   <div id="container"></div>
 
-  <button class="btn-add" onclick="addCard()">+ 新增替换任务</button>
+  <button class="btn-add" onclick="addCard()">+ 新增替换按钮</button>
   <button class="btn-gen" onclick="generateYml()">⚡ 生成 auto-update.yml 配置代码</button>
 
   <div style="margin-top: 24px;">
@@ -70,7 +97,7 @@
       <h3 style="font-size: 1.1rem; color: #1e293b;">生成结果 (.github/workflows/auto-update.yml)：</h3>
       <button class="btn-copy" onclick="copyYml()">📋 复制完整 YML</button>
     </div>
-    <textarea id="output" readonly style="height: 260px; font-family: monospace; font-size: 14px !important; background: #0f172a; color: #38bdf8;"></textarea>
+    <textarea id="output" readonly style="height: 280px; font-family: monospace; font-size: 14px !important; background: #0f172a; color: #38bdf8;"></textarea>
   </div>
 
   <script>
@@ -83,12 +110,73 @@
       return `${y}-${m}-${day}T00:00`;
     }
 
-    // 预设默认的 3 个对应按钮
-    let tasks = [
-      { id: "btn-1", name: "🎞全国最大交流总群.免费 →", switchTime: getTomorrowZero(), newUrl: "https://your-new-link-1.com" },
-      { id: "btn-2", name: "🎞 亲测校园免费通道→不一样 →", switchTime: getTomorrowZero(), newUrl: "https://your-new-link-2.com" },
-      { id: "btn-3", name: "🎞 这个最全~各种搞笑视频→", switchTime: getTomorrowZero(), newUrl: "https://your-new-link-3.com" }
-    ];
+    let tasks = [];
+
+    // 从 HTML 代码文本中解析带有 id 和 onclick="go('...')" 的按钮
+    function extractTasksFromHtml(htmlText) {
+      const parsedTasks = [];
+      const regex = /<button[^>]*id=["']([^"']+)["'][^>]*onclick=["']go\(['"]([^'"]+)['"]\)[^>]*>([\s\S]*?)<\/button>/gi;
+      let match;
+      while ((match = regex.exec(htmlText)) !== null) {
+        const id = match[1];
+        const oldUrl = match[2];
+        const name = match[3].replace(/<[^>]+>/g, '').trim();
+        parsedTasks.push({ id, name, newUrl: oldUrl });
+      }
+      return parsedTasks;
+    }
+
+    // 1. 自动读取同目录下的 index.html
+    function fetchLocalIndexHtml() {
+      fetch('index.html?t=' + Date.now())
+        .then(res => {
+          if (!res.ok) throw new Error('网络响应异常');
+          return res.text();
+        })
+        .then(text => {
+          const extracted = extractTasksFromHtml(text);
+          if (extracted.length > 0) {
+            tasks = extracted;
+            render();
+            generateYml();
+          } else {
+            fallbackDefaultTasks();
+          }
+        })
+        .catch(() => {
+          fallbackDefaultTasks();
+        });
+    }
+
+    // 2. 手动解析输入的 HTML
+    function parseCustomHtml() {
+      const rawText = document.getElementById('rawHtmlInput').value;
+      if (!rawText.trim()) {
+        alert('请先粘贴 index.html 代码！');
+        return;
+      }
+      const extracted = extractTasksFromHtml(rawText);
+      if (extracted.length > 0) {
+        tasks = extracted;
+        render();
+        generateYml();
+        alert(`成功解析出 ${extracted.length} 个按钮数据！`);
+      } else {
+        alert('未在提交的代码中匹配到包含 id 和 onclick="go(\'...\')" 的按钮！');
+      }
+    }
+
+    function fallbackDefaultTasks() {
+      if (tasks.length === 0) {
+        tasks = [
+          { id: "btn-1", name: "🎞全国最大交流总群.免费 →", newUrl: "https://your-new-link-1.com" },
+          { id: "btn-2", name: "🎞 亲测校园免费通道→不一样 →", newUrl: "https://your-new-link-2.com" },
+          { id: "btn-3", name: "🎞 这个最全~各种搞笑视频→", newUrl: "https://your-new-link-3.com" }
+        ];
+        render();
+        generateYml();
+      }
+    }
 
     function render() {
       const box = document.getElementById('container');
@@ -97,7 +185,7 @@
         box.innerHTML += `
           <div class="card" data-idx="${index}">
             <div class="card-header">
-              <strong>配置任务 #${index + 1} (${item.name || item.id})</strong>
+              <strong>按钮配置 #${index + 1} (${item.name || item.id})</strong>
               ${tasks.length > 1 ? `<button class="btn-del" onclick="del(${index})">删除</button>` : ''}
             </div>
             <div class="grid">
@@ -106,12 +194,8 @@
                 <input type="text" class="field-id" value="${item.id || ''}">
               </div>
               <div>
-                <label>切换时间 (超过此时间自动替换)</label>
-                <input type="datetime-local" class="field-time" value="${item.switchTime}">
-              </div>
-              <div class="full">
                 <label>按钮备注说明</label>
-                <input type="text" class="field-name" value="${item.name || ''}" placeholder="如：第一个石榴卡按钮">
+                <input type="text" class="field-name" value="${item.name || ''}">
               </div>
               <div class="full">
                 <label>到期后替换的新链接 (newUrl)</label>
@@ -124,14 +208,12 @@
     }
 
     function collect() {
-      const cards = document.querySelectorAll('#container .card');
+      const cards = document.querySelectorAll('#container .card:not(.time-card):not(.import-card)');
       const res = [];
       cards.forEach(c => {
-        const timeVal = c.querySelector('.field-time').value;
         res.push({
           id: c.querySelector('.field-id').value.trim(),
           name: c.querySelector('.field-name').value.trim(),
-          switchTime: timeVal ? (timeVal.length === 16 ? timeVal + ':00' : timeVal) : getTomorrowZero() + ':00',
           newUrl: c.querySelector('.field-url').value.trim()
         });
       });
@@ -140,7 +222,7 @@
 
     function addCard() {
       tasks = collect();
-      tasks.push({ id: `btn-${tasks.length + 1}`, name: `新按钮 #${tasks.length + 1}`, switchTime: getTomorrowZero(), newUrl: "" });
+      tasks.push({ id: `btn-${tasks.length + 1}`, name: `新按钮 #${tasks.length + 1}`, newUrl: "" });
       render();
     }
 
@@ -152,19 +234,39 @@
 
     function generateYml() {
       const currentTasks = collect();
-      
+      const timeVal = document.getElementById('globalTime').value;
+
+      if (!timeVal) {
+        alert('请先选择触发更新的具体时间！');
+        return;
+      }
+
+      const targetDate = new Date(timeVal);
+      if (isNaN(targetDate.getTime())) {
+        alert('时间格式无效');
+        return;
+      }
+
+      // 北京时间转换为 UTC 时间
+      const utcDate = new Date(targetDate.getTime() - (8 * 60 * 60 * 1000));
+      const min = utcDate.getMinutes();
+      const hour = utcDate.getHours();
+      const day = utcDate.getDate();
+      const month = utcDate.getMonth() + 1;
+
+      const cronStr = `${min} ${hour} ${day} ${month} *`;
+
       const taskArrString = JSON.stringify(currentTasks.map(t => ({
         id: t.id,
-        switchTime: t.switchTime,
         newUrl: t.newUrl
       })), null, 14).replace(/\n\s{12}\}/g, '\n            }');
 
-      const ymlCode = `name: 自动定时更新 index.html 链接
+      const ymlCode = `name: 定时更新 index.html 按钮链接
 
 on:
   schedule:
-    # 每小时整点检查并自动替换
-    - cron: '0 * * * *'
+    # 自动换算对应的 UTC 时间 (北京时间 ${timeVal.replace('T', ' ')})
+    - cron: '${cronStr}'
   workflow_dispatch:
 
 jobs:
@@ -177,49 +279,45 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: 执行替换
+      - name: 执行链接替换
         run: |
           node -e '
             const fs = require("fs");
             let html = fs.readFileSync("index.html", "utf8");
 
-            // 自动生成的预设替换任务列表
+            // 要替换的新链接列表
             const tasks = ${taskArrString};
 
             let hasChanged = false;
-            const now = new Date();
 
             tasks.forEach(task => {
               if (!task.newUrl) return;
-              const targetTime = new Date(task.switchTime);
               const regex = new RegExp(\`(id="\${task.id}"[\\\\s\\\\S]*?onclick="go\\\\(\\\\x27)(.*?)(?=\\\\x27\\\\)")\`);
 
-              if (now >= targetTime) {
-                const match = html.match(regex);
-                if (match && match[2] !== task.newUrl) {
-                  html = html.replace(regex, \`$1\${task.newUrl}\`);
-                  hasChanged = true;
-                  console.log(\`[成功] 按钮 \${task.id} 链接替换为: \${task.newUrl}\`);
-                }
+              const match = html.match(regex);
+              if (match && match[2] !== task.newUrl) {
+                html = html.replace(regex, \`$1\${task.newUrl}\`);
+                hasChanged = true;
+                console.log(\`[成功] 按钮 \${task.id} 链接已更新为: \${task.newUrl}\`);
               }
             });
 
             if (hasChanged) {
               fs.writeFileSync("index.html", html, "utf8");
-              console.log("index.html 自动修改保存成功！");
+              console.log("index.html 代码更新保存成功！");
             } else {
-              console.log("未到触发时间或无需修改。");
+              console.log("链接无需更新。");
             }
           '
 
-      - name: 提交修改回 GitHub 仓库
+      - name: 自动提交修改回 GitHub 仓库
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           if [[ -n $(git status --porcelain) ]]; then
             git add index.html
-            git commit -m "chore: 预设时间已到，Actions 自动更新 index.html 按钮链接"
+            git commit -m "chore: 预设时间已到，Actions 自动修改 index.html 链接"
             git push
           else
             echo "没有任何变更，跳过提交"
@@ -233,12 +331,12 @@ jobs:
       if (!txt.value) return alert('请先点击生成按钮！');
       txt.select();
       navigator.clipboard.writeText(txt.value);
-      alert('已复制 YML 代码！请直接粘贴到 .github/workflows/auto-update.yml 文件中。');
+      alert('已复制 YML 代码！请直接粘贴覆盖 .github/workflows/auto-update.yml 文件。');
     }
 
     window.onload = function() {
-      render();
-      generateYml();
+      document.getElementById('globalTime').value = getTomorrowZero();
+      fetchLocalIndexHtml();
     };
   </script>
 </body>
