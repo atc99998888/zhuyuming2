@@ -1,0 +1,92 @@
+name: 自动定时更新 index.html 链接
+
+on:
+  schedule:
+    # 每小时第 0 分钟自动执行检查（例：14:00、15:00...）
+    - cron: '0 * * * *'
+  # 支持在 GitHub Actions 页面手动点击按钮测试运行
+  workflow_dispatch:
+
+jobs:
+  auto-rewrite-code:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 执行替换
+        run: |
+          node -e '
+            const fs = require("fs");
+            let html = fs.readFileSync("index.html", "utf8");
+
+            // ====================================================================
+            // 【预设替换配置清单】
+            // 你只需要修改 switchTime（预设时间）和 newUrl（要替换的新链接）
+            // ====================================================================
+            const tasks = [
+              {
+                // 对应按钮：🎞全国最大交流总群.免费 →
+                id: "btn-1",
+                switchTime: "2026-09-18T00:00:00",
+                newUrl: "https://你的预设新链接1.com"
+              },
+              {
+                // 对应按钮：🎞 亲测校园免费通道→不一样 →
+                id: "btn-2",
+                switchTime: "2026-09-18T00:00:00",
+                newUrl: "https://你的预设新链接2.com"
+              },
+              {
+                // 对应按钮：🎞 这个最全~各种搞笑视频→
+                id: "btn-3",
+                switchTime: "2026-09-18T00:00:00",
+                newUrl: "https://你的预设新链接3.com"
+              }
+            ];
+            // ====================================================================
+
+            let hasChanged = false;
+            const now = new Date();
+
+            tasks.forEach(task => {
+              const targetTime = new Date(task.switchTime);
+
+              // 匹配 id="btn-X" ... onclick="go('链接')" 格式
+              const regex = new RegExp(`(id="${task.id}"[\\s\\S]*?onclick="go\\(\\x27)(.*?)(?=\\x27\\)")`);
+
+              // 到了预设时间，进行判断与替换
+              if (now >= targetTime && task.newUrl && task.newUrl !== "https://你的预设新链接1.com" && task.newUrl !== "https://你的预设新链接2.com" && task.newUrl !== "https://你的预设新链接3.com") {
+                const match = html.match(regex);
+                if (match && match[2] !== task.newUrl) {
+                  html = html.replace(regex, `$1${task.newUrl}`);
+                  hasChanged = true;
+                  console.log(`[成功] 按钮 ${task.id} 链接已自动更新为: ${task.newUrl}`);
+                }
+              }
+            });
+
+            if (hasChanged) {
+              fs.writeFileSync("index.html", html, "utf8");
+              console.log("index.html 代码更新保存成功！");
+            } else {
+              console.log("未到时间或没有需要更新的新链接。");
+            }
+          '
+
+      - name: 自动提交并推送代码回 GitHub 仓库
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if [[ -n $(git status --porcelain) ]]; then
+            git add index.html
+            git commit -m "chore: 预设时间已到，Actions 自动更新 index.html 按钮跳转链接"
+            git push
+          else
+            echo "没有任何变更，跳过提交"
+          fi
+
