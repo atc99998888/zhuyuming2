@@ -38,7 +38,7 @@
       padding: 24px;
       margin-bottom: 28px;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-      border-left: 6px solid #235085; /* 左侧高亮边框 */
+      border-left: 6px solid #235085;
     }
     
     .card-header {
@@ -82,11 +82,11 @@
       margin-top: 8px;
     }
     .sub-box-1 {
-      background: #f0fdf4; /* 链接1淡绿背景 */
+      background: #f0fdf4;
       border-color: #bbf7d0;
     }
     .sub-box-2 {
-      background: #f0f9ff; /* 链接2淡蓝背景 */
+      background: #f0f9ff;
       border-color: #bae6fd;
     }
     
@@ -123,6 +123,18 @@
       cursor: pointer;
       font-weight: bold;
     }
+    .btn-auto-fetch {
+      background: #2563eb;
+      color: white;
+      border: 0;
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-bottom: 12px;
+    }
     .btn-copy {
       background: #0284c7;
       color: white;
@@ -136,7 +148,7 @@
     }
     
     textarea {
-      height: 180px;
+      height: 140px;
       font-family: monospace;
       line-height: 1.4;
     }
@@ -154,10 +166,17 @@
 
   <!-- 导入区 -->
   <div class="card" style="background: #f8fafc; border-left-color: #64748b;">
-    <span class="card-title" style="color: #475569;">📥 导入已有 auto-update.js</span>
-    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">粘贴你之前保存的 auto-update.js 代码，点击下方按钮解析导入：</p>
-    <textarea id="importCode" placeholder="在此粘贴 auto-update.js 代码..."></textarea>
-    <button class="btn-add" onclick="importJS()" style="margin-top: 12px; width: 100%; background: #475569;">读取并导入配置</button>
+    <span class="card-title" style="color: #475569;">📥 导入已有配置</span>
+    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">如果你已把 tools.html 部署在同目录下，可直接点击一键自动获取：</p>
+    
+    <!-- 新增：一键自动获取 -->
+    <button class="btn-auto-fetch" onclick="fetchLocalJS()">🔄 一键读取同目录 auto-update.js</button>
+
+    <details style="margin-top: 10px;">
+      <summary style="cursor: pointer; color: #64748b; font-size: 0.85rem;">手动粘贴文本导入（备用）</summary>
+      <textarea id="importCode" placeholder="在此粘贴 auto-update.js 代码..." style="margin-top: 8px;"></textarea>
+      <button class="btn-add" onclick="importJS()" style="margin-top: 8px; width: 100%; background: #475569; padding: 10px;">读取剪贴板内容</button>
+    </details>
   </div>
 
   <!-- 编辑区 -->
@@ -175,7 +194,6 @@
   <textarea id="outputCode" readonly placeholder="点击上方生成按钮后，此处将生成 JS 代码..."></textarea>
 
   <script>
-    // 计算第二天凌晨 0 点的格式字符串 (YYYY-MM-DDTHH:mm)
     function getTomorrowZeroPickerString() {
       const d = new Date();
       d.setDate(d.getDate() + 1);
@@ -185,22 +203,19 @@
       return `${year}-${month}-${day}T00:00`;
     }
 
-    // 时间转换：标准文本 -> datetime-local 格式
     function formatToPickerValue(timeStr) {
       if (!timeStr) return getTomorrowZeroPickerString();
       const formatted = timeStr.replace(/\//g, '-').replace(' ', 'T');
       return formatted.length >= 16 ? formatted.substring(0, 16) : getTomorrowZeroPickerString();
     }
 
-    // 时间转换：datetime-local 格式 -> 标准文本 (YYYY/MM/DD HH:mm:ss)
     function formatToStandardTime(pickerStr) {
       if (!pickerStr) return '';
       const [date, time] = pickerStr.split('T');
       const [year, month, day] = date.split('-');
-      return `${year}/${month}/${day} ${time}:00`;
+      return `${year}/${month}/${day}${time}:00`;
     }
 
-    // 默认初始数据
     let navData = [
       {
         id: "btn-1",
@@ -225,7 +240,11 @@
       }
     ];
 
-    window.onload = renderCards;
+    window.onload = function() {
+      renderCards();
+      // 页面加载时尝试自动抓取同目录脚本（静默抓取）
+      fetchLocalJS(true);
+    };
 
     function renderCards() {
       const container = document.getElementById('navContainer');
@@ -399,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function copyJS() {
       const textarea = document.getElementById('outputCode');
       if (!textarea.value) {
-        alert('请先点击“生成 auto-update.js”按钮！');
+        alert('请先点击“⚡ 生成 auto-update.js”按钮！');
         return;
       }
       textarea.select();
@@ -411,20 +430,41 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    function importJS() {
-      const raw = document.getElementById('importCode').value;
-      const match = raw.match(/const navConfigs = (\[[\s\S]*?\]);/);
+    // 核心新增：直接 Fetch 抓取同目录下的 auto-update.js 并解析
+    function fetchLocalJS(isSilent = false) {
+      fetch('auto-update.js?t=' + Date.now())
+        .then(res => {
+          if (!res.ok) throw new Error('未找到 auto-update.js');
+          return res.text();
+        })
+        .then(text => {
+          parseAndLoadJS(text, !isSilent);
+        })
+        .catch(err => {
+          if (!isSilent) {
+            alert('读取失败：未找到同目录下的 auto-update.js，或当前环境不支持直接读取（如未通过 HTTP 方式打开）。');
+          }
+        });
+    }
+
+    function parseAndLoadJS(rawText, showNotice = true) {
+      const match = rawText.match(/const navConfigs = (\[[\s\S]*?\]);/);
       if (match && match[1]) {
         try {
           navData = JSON.parse(match[1]);
           renderCards();
-          alert('解析成功！已在界面中载入所有配置。');
+          if (showNotice) alert('已成功读取并载入同目录的 auto-update.js 配置！');
         } catch (e) {
-          alert('数据解析失败，请确保粘贴的是完整正确的 auto-update.js 代码！');
+          if (showNotice) alert('解析失败：JSON 格式异常');
         }
       } else {
-        alert('未找到有效的 navConfigs 变量配置！');
+        if (showNotice) alert('未在脚本中找到有效的 navConfigs 变量！');
       }
+    }
+
+    function importJS() {
+      const raw = document.getElementById('importCode').value;
+      parseAndLoadJS(raw, true);
     }
   </script>
 </body>
