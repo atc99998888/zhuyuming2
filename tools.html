@@ -58,12 +58,12 @@
 </head>
 <body>
 
-  <h2>导航链接自动切换后台</h2>
+  <h2>6导航链接自动切换后台</h2>
 
   <!-- 导入功能区 -->
   <div class="card" style="background: #f8fafc; border-left-color: #64748b;">
     <strong>📥 导入已有配置</strong>
-    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">自动读取或解析已有的 auto-update.js 配置：</p>
+    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">兼容自动读取新/旧各种格式的 auto-update.js 代码：</p>
     
     <button class="btn-auto-fetch" onclick="fetchLocalJS()">🔄 一键读取同目录 auto-update.js</button>
 
@@ -122,23 +122,23 @@
             <div class="grid">
               <div>
                 <label>按钮 ID</label>
-                <input type="text" class="field-id" value="${item.id}">
+                <input type="text" class="field-id" value="${item.id || ''}">
               </div>
               <div>
-                <label>切换时间（超过此时间跳新链接）</label>
+                <label>切换时间（超过此时间自动跳新链接）</label>
                 <input type="datetime-local" class="field-time" value="${pickerVal}">
               </div>
               <div class="full">
                 <label>按钮文字</label>
-                <input type="text" class="field-text" value="${item.text}">
+                <input type="text" class="field-text" value="${item.text || ''}">
               </div>
               <div class="full">
                 <label>当前/旧链接 (oldUrl)</label>
-                <input type="text" class="field-old" value="${item.oldUrl}">
+                <input type="text" class="field-old" value="${item.oldUrl || ''}">
               </div>
               <div class="full">
                 <label>到期后新链接 (newUrl)</label>
-                <input type="text" class="field-new" value="${item.newUrl}">
+                <input type="text" class="field-new" value="${item.newUrl || ''}">
               </div>
             </div>
           </div>
@@ -191,7 +191,9 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.className = 'btn';
     btn.innerText = item.text;
 
-    const targetTime = new Date(item.switchTime).getTime();
+    // 时间兼容处理
+    let timeStr = item.switchTime ? item.switchTime.replace(/\\//g, '-').replace(' ', 'T') : '';
+    const targetTime = new Date(timeStr).getTime();
     let targetUrl = item.oldUrl;
 
     if (!isNaN(targetTime) && now >= targetTime && item.newUrl) {
@@ -218,19 +220,33 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('已复制 JS 代码！');
     }
 
-    // 核心导入逻辑
+    // 智能解析：同时兼容新旧数据结构
     function parseAndLoadJS(rawText, showNotice = true) {
       const match = rawText.match(/const navConfigs = (\[[\s\S]*?\]);/);
       if (match && match[1]) {
         try {
-          list = JSON.parse(match[1]);
+          const rawData = JSON.parse(match[1]);
+          list = rawData.map(item => {
+            // 如果是旧的数据结构 (包含 link1, link2)
+            if (item.link1 || item.link2) {
+              return {
+                id: item.id || '',
+                text: item.text || '',
+                oldUrl: (item.link1 && item.link1.url) ? item.link1.url : '',
+                newUrl: (item.link2 && item.link2.url) ? item.link2.url : '',
+                switchTime: (item.link2 && item.link2.time) ? item.link2.time : ((item.link1 && item.link1.time) ? item.link1.time : getTomorrowZero() + ':00')
+              };
+            }
+            // 新的数据结构直接读取
+            return item;
+          });
           render();
-          if (showNotice) alert('解析成功并已加载配置！');
+          if (showNotice) alert('解析成功并已转换加载配置！');
         } catch (e) {
-          if (showNotice) alert('解析失败：JSON 结构不正确');
+          if (showNotice) alert('解析失败：JSON 语法错误');
         }
       } else {
-        if (showNotice) alert('未在文本中找到 navConfigs 数组数据！');
+        if (showNotice) alert('未在代码中找到 navConfigs 变量数组！');
       }
     }
 
@@ -240,8 +256,8 @@ document.addEventListener('DOMContentLoaded', function() {
           if (!res.ok) throw new Error();
           return res.text();
         })
-        .then(text => parseAndLoadJS(text, true))
-        .catch(() => alert('读取失败：请确认同目录下包含 auto-update.js 文件，且处于服务器或本地 HTTP 环境访问中。'));
+        .then(text => parseAndLoadJS(text, false))
+        .catch(() => {});
     }
 
     function importJS() {
@@ -251,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.onload = function() {
       render();
-      fetchLocalJS(); // 打开页面时自动静默尝试读取
+      fetchLocalJS();
     };
   </script>
 </body>
