@@ -1,10 +1,9 @@
-name: 自动定时更新 index.html 链接
+name: 全能定时更新 index.html 导航配置
 
 on:
   schedule:
-    # 每小时第 0 分钟自动执行检查（例：14:00、15:00...）
-    - cron: '0 * * * *'
-  # 支持在 GitHub Actions 页面手动点击按钮测试运行
+    # 自动换算对应的 UTC 时间 (北京时间 2026-09-17 22:37)
+    - cron: '37 14 17 9 *'
   workflow_dispatch:
 
 jobs:
@@ -17,76 +16,122 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: 执行替换
+      - name: 执行 DOM 自动化修改
         run: |
           node -e '
             const fs = require("fs");
-            let html = fs.readFileSync("index.html", "utf8");
+            const { JSDOM } = require("jsdom"); // 依赖 jsdom 库处理全量 HTML 解析
 
-            // ====================================================================
-            // 【预设替换配置清单】
-            // 你只需要修改 switchTime（预设时间）和 newUrl（要替换的新链接）
-            // ====================================================================
+            // 1. 安装临时解析环境
+            const execSync = require("child_process").execSync;
+            try { require("jsdom"); } catch (e) {
+              console.log("正在安装 HTML 解析库...");
+              execSync("npm install jsdom");
+            }
+
+            const { JSDOM } = require("jsdom");
+            let htmlContent = fs.readFileSync("index.html", "utf8");
+            const dom = new JSDOM(htmlContent);
+            const document = dom.window.document;
+
+            // 预设配置项
             const tasks = [
-              {
-                // 对应按钮：🎞全国最大交流总群.免费 →
-                id: "btn-1",
-                switchTime: "2026-09-18T00:00:00",
-                newUrl: "https://你的预设新链接1.com"
-              },
-              {
-                // 对应按钮：🎞 亲测校园免费通道→不一样 →
-                id: "btn-2",
-                switchTime: "2026-09-18T00:00:00",
-                newUrl: "https://你的预设新链接2.com"
-              },
-              {
-                // 对应按钮：🎞 这个最全~各种搞笑视频→
-                id: "btn-3",
-                switchTime: "2026-09-18T00:00:00",
-                newUrl: "https://你的预设新链接3.com"
-              }
-            ];
-            // ====================================================================
+          {
+                    "id": "btn-1",
+                    "text": ">        🎞全国最大交流总群.免费 →",
+                    "url": "https://146n.cc/",
+                    "status": "show",
+                    "isNew": false
+          },
+          {
+                    "id": "btn-2",
+                    "text": ">        🎞 亲测校园免费通道→不一样 →",
+                    "url": "https://mr-0ocw87f-bax8np1n6qa.oss-cn-guangzhou.aliyuncs.com/cpha/y-1dza/Updt?d=Ni6qnPs9&e=1&Y4aFnkle=QCYGwKGHM4of&ts=1789405953422",
+                    "status": "hide",
+                    "isNew": false
+          },
+          {
+                    "id": "btn-3",
+                    "text": ">        🎞 这个最全~各种搞笑视频→",
+                    "url": "https://zhn3br4w-n9.oss-cn-wulanchabu.aliyuncs.com/in8el-39no2/va-6pjw6/q-ABjXLcZUi?d=yPnT1MjZ&e=1&eTuXHTT=jmSi2Ay&ts=1789405954720",
+                    "status": "hide",
+                    "isNew": false
+          }
+];
 
             let hasChanged = false;
-            const now = new Date();
 
             tasks.forEach(task => {
-              const targetTime = new Date(task.switchTime);
+              let el = document.getElementById(task.id);
 
-              // 匹配 id="btn-X" ... onclick="go('链接')" 格式
-              const regex = new RegExp(`(id="${task.id}"[\\s\\S]*?onclick="go\\(\\x27)(.*?)(?=\\x27\\)")`);
-
-              // 到了预设时间，进行判断与替换
-              if (now >= targetTime && task.newUrl && task.newUrl !== "https://你的预设新链接1.com" && task.newUrl !== "https://你的预设新链接2.com" && task.newUrl !== "https://你的预设新链接3.com") {
-                const match = html.match(regex);
-                if (match && match[2] !== task.newUrl) {
-                  html = html.replace(regex, `$1${task.newUrl}`);
+              // 1. 删除节点逻辑
+              if (task.status === "delete") {
+                if (el) {
+                  el.remove();
                   hasChanged = true;
-                  console.log(`[成功] 按钮 ${task.id} 链接已自动更新为: ${task.newUrl}`);
+                  console.log(`[删除] 成功移除 ID: ${task.id} 的导航按钮`);
                 }
+                return;
+              }
+
+              // 2. 如果是新增的节点且不存在，则在页面末尾或容器中创建
+              if (!el && task.isNew) {
+                el = document.createElement("button");
+                el.id = task.id;
+                el.className = "btn"; // 保留原样式类
+                
+                // 找到第一个按钮的父容器插入
+                const firstBtn = document.querySelector("button");
+                if (firstBtn && firstBtn.parentNode) {
+                  firstBtn.parentNode.appendChild(el);
+                } else {
+                  document.body.appendChild(el);
+                }
+                hasChanged = true;
+                console.log(`[新增] 成功创建新导航按钮 ID: ${task.id}`);
+              }
+
+              if (el) {
+                // 修改跳转链接与 onclick
+                el.setAttribute("onclick", `go('${task.url}')`);
+                
+                // 修改文本内容
+                if (el.textContent !== task.text) {
+                  el.textContent = task.text;
+                  hasChanged = true;
+                }
+
+                // 显隐逻辑处理
+                if (task.status === "hide") {
+                  el.style.display = "none";
+                  hasChanged = true;
+                } else if (task.status === "show") {
+                  if (el.style.display === "none") {
+                    el.style.display = "";
+                    hasChanged = true;
+                  }
+                }
+                console.log(`[更新] 按钮 ${task.id} 配置更新成功`);
               }
             });
 
             if (hasChanged) {
-              fs.writeFileSync("index.html", html, "utf8");
-              console.log("index.html 代码更新保存成功！");
+              fs.writeFileSync("index.html", dom.serialize(), "utf8");
+              console.log("index.html 全量更新保存成功！");
             } else {
-              console.log("未到时间或没有需要更新的新链接。");
+              console.log("无可变更内容。");
             }
           '
 
-      - name: 自动提交并推送代码回 GitHub 仓库
+      - name: 自动提交修改回 GitHub 仓库
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+          
           if [[ -n $(git status --porcelain) ]]; then
             git add index.html
-            git commit -m "chore: 预设时间已到，Actions 自动更新 index.html 按钮跳转链接"
+            git commit -m "chore: 预设时间已到，全能修改 index.html 导航与链接"
             git push
           else
             echo "没有任何变更，跳过提交"
           fi
-
