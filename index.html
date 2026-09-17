@@ -40,7 +40,7 @@
          font-size:.83rem;color:#7685a2;text-align:center;line-height:1.6;padding:12px 8px 16px}
   footer a{color:inherit;text-decoration:none}
   footer a:hover{text-decoration:underline}
-      
+      
 
   /* --- Loading --- */
   #loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
@@ -61,8 +61,24 @@
     <div class="subtitle">下面每一个都不同，建议全部下载留存</div>
   </div>
 
-  <!-- 菜单容器：由 auto-update.js 动态渲染生成 -->
-  <div class="menu"></div>
+  <div class="menu">
+    
+    <!-- 菜单1：石榴卡1 (加上了 id="btn-1") -->
+    <button id="btn-1" class="btn" data-visible="1" onclick="go('https://khxm7iv3ws-hhhkg.oss-cn-wulanchabu.aliyuncs.com/uls-2b7pdd-4p/z-xr-u4/tL-Psr?d=iGxzV4c6&e=1&J0WAjeQ=4D4BwiAuCLPQm6&ts=1789405952159')">
+        🎞全国最大交流总群.免费 →
+    </button>
+
+    <!-- 菜单2：石榴卡2 (加上了 id="btn-2") -->
+    <button id="btn-2" class="btn" data-visible="1" onclick="go('https://mr-0ocw87f-bax8np1n6qa.oss-cn-guangzhou.aliyuncs.com/cpha/y-1dza/Updt?d=Ni6qnPs9&e=1&Y4aFnkle=QCYGwKGHM4of&ts=1789405953422')">
+        🎞 亲测校园免费通道→不一样 →
+    </button> 
+
+    <!-- 菜单3：石榴临时卡 (加上了 id="btn-3") -->
+    <button id="btn-3" class="btn" data-visible="1" onclick="go('https://zhn3br4w-n9.oss-cn-wulanchabu.aliyuncs.com/in8el-39no2/va-6pjw6/q-ABjXLcZUi?d=yPnT1MjZ&e=1&eTuXHTT=jmSi2Ay&ts=1789405954720')">
+        🎞 这个最全~各种搞笑视频→
+    </button>   
+  
+  </div>
 </header>
 
 <!-- -------- 官方信息-------- -->
@@ -168,21 +184,26 @@
   document.getElementById('infoBox').addEventListener('toggle',e=>{
     document.body.style.overflow = e.target.open ? 'auto' : 'hidden';
   });
+
+  /* ========== 菜单显示控制（新增） ========== */
+  document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('.menu .btn');
+    buttons.forEach(btn => {
+      if (btn.getAttribute('data-visible') === '0') {
+        btn.style.display = 'none';
+      }
+    });
+  });
 </script>
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
-    // 访客统计上报
     fetch('https://fangkejilu.pages.dev/api/track', { method: 'POST' })
       .then(res => res.json())
       .then(data => console.log('访客统计上报结果:', data))
       .catch(err => console.error('访客统计上报异常:', err));
   });
 </script>
-
-<!-- 引入动态导航渲染与逻辑处理脚本 -->
-<script src="auto-update.js"></script>
-
+  
 </body>
 </html>
-
