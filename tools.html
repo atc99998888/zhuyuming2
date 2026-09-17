@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>8导航链接自动切换后台</title>
+  <title>导航链接自动切换后台</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -51,6 +51,7 @@
     .btn-add { background: #0f172a; color: #fff; border: 0; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 12px; }
     .btn-gen { background: #16a34a; color: #fff; border: 0; padding: 14px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1.1rem; }
     .btn-copy { background: #2563eb; color: #fff; border: 0; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-bottom: 8px; }
+    .btn-auto-fetch { background: #2563eb; color: white; border: 0; padding: 12px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 12px; }
     
     @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .full { grid-column: span 1; } }
   </style>
@@ -58,6 +59,20 @@
 <body>
 
   <h2>导航链接自动切换后台</h2>
+
+  <!-- 导入功能区 -->
+  <div class="card" style="background: #f8fafc; border-left-color: #64748b;">
+    <strong>📥 导入已有配置</strong>
+    <p style="font-size: 0.85rem; color: #64748b; margin: 8px 0 12px;">自动读取或解析已有的 auto-update.js 配置：</p>
+    
+    <button class="btn-auto-fetch" onclick="fetchLocalJS()">🔄 一键读取同目录 auto-update.js</button>
+
+    <details style="margin-top: 10px;">
+      <summary style="cursor: pointer; color: #64748b; font-size: 0.85rem;">手动粘贴文本解析导入（备用）</summary>
+      <textarea id="importCode" placeholder="在此粘贴 auto-update.js 代码..." style="margin-top: 8px; height: 100px;"></textarea>
+      <button class="btn-add" onclick="importJS()" style="margin-top: 8px; background: #475569; padding: 10px;">解析输入的代码</button>
+    </details>
+  </div>
 
   <div id="container"></div>
 
@@ -83,14 +98,21 @@
     }
 
     let list = [
-      { id: "btn-1", text: "🎞全国最大交流总群.免费 →", oldUrl: "https://example.com/old1", newUrl: "https://example.com/new1", switchTime: getTomorrowZero() },
-      { id: "btn-2", text: "🎞 亲测校园免费通道→不一样 →", oldUrl: "https://example.com/old2", newUrl: "https://example.com/new2", switchTime: getTomorrowZero() }
+      { id: "btn-1", text: "🎞全国最大交流总群.免费 →", oldUrl: "https://example.com/old1", newUrl: "https://example.com/new1", switchTime: getTomorrowZero() + ":00" },
+      { id: "btn-2", text: "🎞 亲测校园免费通道→不一样 →", oldUrl: "https://example.com/old2", newUrl: "https://example.com/new2", switchTime: getTomorrowZero() + ":00" }
     ];
+
+    function formatPickerTime(timeStr) {
+      if (!timeStr) return getTomorrowZero();
+      let formatted = timeStr.replace(/\//g, '-').replace(' ', 'T');
+      return formatted.length >= 16 ? formatted.substring(0, 16) : getTomorrowZero();
+    }
 
     function render() {
       const box = document.getElementById('container');
       box.innerHTML = '';
       list.forEach((item, index) => {
+        const pickerVal = formatPickerTime(item.switchTime);
         box.innerHTML += `
           <div class="card" data-idx="${index}">
             <div class="card-header">
@@ -104,7 +126,7 @@
               </div>
               <div>
                 <label>切换时间（超过此时间跳新链接）</label>
-                <input type="datetime-local" class="field-time" value="${item.switchTime}">
+                <input type="datetime-local" class="field-time" value="${pickerVal}">
               </div>
               <div class="full">
                 <label>按钮文字</label>
@@ -125,15 +147,16 @@
     }
 
     function collect() {
-      const cards = document.querySelectorAll('.card');
+      const cards = document.querySelectorAll('#container .card');
       const res = [];
       cards.forEach(c => {
+        const timeVal = c.querySelector('.field-time').value;
         res.push({
           id: c.querySelector('.field-id').value.trim(),
           text: c.querySelector('.field-text').value,
           oldUrl: c.querySelector('.field-old').value.trim(),
           newUrl: c.querySelector('.field-new').value.trim(),
-          switchTime: c.querySelector('.field-time').value + ':00'
+          switchTime: timeVal ? (timeVal.length === 16 ? timeVal + ':00' : timeVal) : getTomorrowZero() + ':00'
         });
       });
       return res;
@@ -141,7 +164,7 @@
 
     function addCard() {
       list = collect();
-      list.push({ id: `btn-${list.length + 1}`, text: "新按钮", oldUrl: "", newUrl: "", switchTime: getTomorrowZero() });
+      list.push({ id: `btn-${list.length + 1}`, text: "新按钮", oldUrl: "", newUrl: "", switchTime: getTomorrowZero() + ":00" });
       render();
     }
 
@@ -195,7 +218,41 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('已复制 JS 代码！');
     }
 
-    window.onload = render;
+    // 核心导入逻辑
+    function parseAndLoadJS(rawText, showNotice = true) {
+      const match = rawText.match(/const navConfigs = (\[[\s\S]*?\]);/);
+      if (match && match[1]) {
+        try {
+          list = JSON.parse(match[1]);
+          render();
+          if (showNotice) alert('解析成功并已加载配置！');
+        } catch (e) {
+          if (showNotice) alert('解析失败：JSON 结构不正确');
+        }
+      } else {
+        if (showNotice) alert('未在文本中找到 navConfigs 数组数据！');
+      }
+    }
+
+    function fetchLocalJS() {
+      fetch('auto-update.js?t=' + Date.now())
+        .then(res => {
+          if (!res.ok) throw new Error();
+          return res.text();
+        })
+        .then(text => parseAndLoadJS(text, true))
+        .catch(() => alert('读取失败：请确认同目录下包含 auto-update.js 文件，且处于服务器或本地 HTTP 环境访问中。'));
+    }
+
+    function importJS() {
+      const raw = document.getElementById('importCode').value;
+      parseAndLoadJS(raw, true);
+    }
+
+    window.onload = function() {
+      render();
+      fetchLocalJS(); // 打开页面时自动静默尝试读取
+    };
   </script>
 </body>
 </html>
